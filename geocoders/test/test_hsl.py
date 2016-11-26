@@ -21,7 +21,7 @@ import poor.test
 class TestModule(poor.test.TestCase):
 
     def setup_method(self, method):
-        self.geocoder = poor.Geocoder("digitransit")
+        self.geocoder = poor.Geocoder("hsl")
 
     def test_geocode(self):
         results = self.geocoder.geocode("kasarmitori, helsinki")
