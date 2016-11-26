@@ -16,7 +16,7 @@ BuildRequires: make
 Requires: libkeepalive
 Requires: libsailfishapp-launcher
 Requires: pyotherside-qml-plugin-python3-qt5 >= 1.2
-Requires: qt5-plugin-geoservices-here >= 5.2.1+git12+upgrade205-1.29.1
+Requires: qt5-plugin-geoservices-here
 Requires: qt5-qtdeclarative-import-location
 Requires: qt5-qtdeclarative-import-positioning >= 5.2
 Requires: sailfishsilica-qt5
