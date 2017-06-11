@@ -1,0 +1,8 @@
+{
+    "attribution": "Data © OpenStreetMap contributors",
+    "_description": "Routing based on OpenStreetMap data",
+    "_modes": "car, bicycle, foot",
+    "name": "OSM Scout Valhalla",
+    "requires": ["harbour-osmscout-server-module-route"],
+    "_source": "OSM Scout offline server"
+}
