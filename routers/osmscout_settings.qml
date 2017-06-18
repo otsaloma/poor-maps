@@ -28,13 +28,13 @@ Column {
             MenuItem { text: qsTranslate("", "Bicycle") }
             MenuItem { text: qsTranslate("", "Foot") }
         }
-        property var keys: ["car", "bicycle", "foot"]
+        property var keys: ["auto", "bicycle", "pedestrian"]
         Component.onCompleted: {
-            var key = app.conf.get("routers.osmscout.type");
+            var key = app.conf.get("routers.osmscout_valhalla.type");
             typeComboBox.currentIndex = typeComboBox.keys.indexOf(key);
         }
         onCurrentIndexChanged: {
-            var option = "routers.osmscout.type";
+            var option = "routers.osmscout_valhalla.type";
             app.conf.set(option, typeComboBox.keys[typeComboBox.currentIndex]);
         }
     }
