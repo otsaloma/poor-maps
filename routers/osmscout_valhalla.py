@@ -68,6 +68,25 @@ ICONS = { 0: "flag",
          36: "flag",
 }
 
+ICONS_osmscout = {
+    "destination": "arrive",
+    "flag": "flag",
+    "merge": "merge-slight-left",
+    "motorway-change": "flag",
+    "motorway-leave": "off-ramp-slight-right",
+    "none": "flag",
+    "roundabout-enter": "roundabout",
+    "roundabout-exit": "off-ramp-slight-right",
+    "start": "depart",
+    "straight": "continue",
+    "turn-left": "turn-left",
+    "turn-right": "turn-right",
+    "turn-sharp-left": "turn-sharp-left",
+    "turn-sharp-right": "turn-sharp-right",
+    "turn-slight-left": "turn-slight-left",
+    "turn-slight-right": "turn-slight-right",
+}
+
 URL = "http://localhost:8553/v2/route?json={input}"
 cache = {}
 
@@ -90,16 +109,33 @@ def route(fm, to, params):
     with poor.util.silent(KeyError):
         return copy.deepcopy(cache[url])
     result = poor.http.get_json(url)
-    legs = result["trip"]["legs"][0]
-    x, y = poor.util.decode_epl(legs["shape"], precision=6)
-    maneuvers = [dict(
-        x=float(x[maneuver["begin_shape_index"]]),
-        y=float(y[maneuver["begin_shape_index"]]),
-        icon=ICONS.get(maneuver["type"], "flag"),
-        narrative=maneuver["instruction"],
-        duration=float(maneuver["time"]),
-    ) for maneuver in legs["maneuvers"]]
-    route = dict(x=x, y=y, maneuvers=maneuvers)
+
+    # libosmscout response
+    if "API version" in result and result["API version"]=="libosmscout V1":
+        x, y = result["lng"], result["lat"]
+        maneuvers = [dict(
+            x=float(maneuver["lng"]),
+            y=float(maneuver["lat"]),
+            icon=ICONS_osmscout.get(maneuver.get("type", "flag"), "flag"),
+            narrative=maneuver["instruction"],
+            duration=float(maneuver["time"]),
+            length=float(maneuver["length"]),
+        ) for maneuver in result["maneuvers"]]
+        route = dict(x=x, y=y, maneuvers=maneuvers)
+
+    # valhalla router
+    else:
+        legs = result["trip"]["legs"][0]
+        x, y = poor.util.decode_epl(legs["shape"], precision=6)
+        maneuvers = [dict(
+            x=float(x[maneuver["begin_shape_index"]]),
+            y=float(y[maneuver["begin_shape_index"]]),
+            icon=ICONS.get(maneuver["type"], "flag"),
+            narrative=maneuver["instruction"],
+            duration=float(maneuver["time"]),
+        ) for maneuver in legs["maneuvers"]]
+        route = dict(x=x, y=y, maneuvers=maneuvers)
+        
     if route and route["x"]:
         cache[url] = copy.deepcopy(route)
     return route
