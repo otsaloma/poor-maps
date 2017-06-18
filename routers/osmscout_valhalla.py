@@ -121,7 +121,7 @@ def route(fm, to, params):
             duration=float(maneuver["time"]),
             length=float(maneuver["length"]),
         ) for maneuver in result["maneuvers"]]
-        route = dict(x=x, y=y, maneuvers=maneuvers)
+        route = dict(x=x, y=y, maneuvers=maneuvers, engine="libosmscout")
 
     # valhalla router
     else:
@@ -134,7 +134,7 @@ def route(fm, to, params):
             narrative=maneuver["instruction"],
             duration=float(maneuver["time"]),
         ) for maneuver in legs["maneuvers"]]
-        route = dict(x=x, y=y, maneuvers=maneuvers)
+        route = dict(x=x, y=y, maneuvers=maneuvers, engine="Valhalla")
         
     if route and route["x"]:
         cache[url] = copy.deepcopy(route)

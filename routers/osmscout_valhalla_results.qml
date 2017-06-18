@@ -51,7 +51,7 @@ Page {
                     "mode": "car",
                     // TRANSLATORS: %1 refers to the routing engine, %2 to the service.
                     "attribution": (qsTranslate("", "Routing by %1, courtesy of %2")
-                                    .arg("Valhalla")
+                                    .arg(route.engine)
                                     .arg("OSM Scout Server"))
 
                 });
