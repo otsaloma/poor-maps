@@ -30,11 +30,11 @@ Column {
         }
         property var keys: ["auto", "bicycle", "pedestrian"]
         Component.onCompleted: {
-            var key = app.conf.get("routers.osmscout_valhalla.type");
+            var key = app.conf.get("routers.osmscout.type");
             typeComboBox.currentIndex = typeComboBox.keys.indexOf(key);
         }
         onCurrentIndexChanged: {
-            var option = "routers.osmscout_valhalla.type";
+            var option = "routers.osmscout.type";
             app.conf.set(option, typeComboBox.keys[typeComboBox.currentIndex]);
         }
     }
