@@ -68,7 +68,7 @@ ICONS = { 0: "flag",
          36: "flag",
 }
 
-ICONS_osmscout = {
+ICONS_OSMSCOUT = {
     "destination": "arrive",
     "flag": "flag",
     "merge": "merge-slight-left",
@@ -101,41 +101,48 @@ def prepare_endpoint(point):
 def route(fm, to, params):
     """Find route and return its properties as a dictionary."""
     fm, to = map(prepare_endpoint, (fm, to))
-    type = poor.conf.routers.osmscout.type
-    input = dict(locations=[fm, to], costing=type,
-                 directions_options={"language": poor.util.get_default_language("en")})
+    lang = poor.util.get_default_language("en")
+    input = dict(locations=[fm, to],
+                 costing=poor.conf.routers.osmscout.type,
+                 directions_options=dict(language=lang))
+
     input = urllib.parse.quote(json.dumps(input))
     url = URL.format(**locals())
     with poor.util.silent(KeyError):
         return copy.deepcopy(cache[url])
     result = poor.http.get_json(url)
+    if result.get("API version", "") == "libosmscout V1":
+        return parse_result_libosmscout(url, result)
+    return parse_result_valhalla(url, result)
 
-    # libosmscout response
-    if "API version" in result and result["API version"]=="libosmscout V1":
-        x, y = result["lng"], result["lat"]
-        maneuvers = [dict(
-            x=float(maneuver["lng"]),
-            y=float(maneuver["lat"]),
-            icon=ICONS_osmscout.get(maneuver.get("type", "flag"), "flag"),
-            narrative=maneuver["instruction"],
-            duration=float(maneuver["time"]),
-            length=float(maneuver["length"]),
-        ) for maneuver in result["maneuvers"]]
-        route = dict(x=x, y=y, maneuvers=maneuvers, engine="libosmscout")
+def parse_result_libosmscout(url, result):
+    """Parse and return route from libosmscout engine."""
+    x, y = result["lng"], result["lat"]
+    maneuvers = [dict(
+        x=float(maneuver["lng"]),
+        y=float(maneuver["lat"]),
+        icon=ICONS_OSMSCOUT.get(maneuver.get("type", "flag"), "flag"),
+        narrative=maneuver["instruction"],
+        duration=float(maneuver["time"]),
+        length=float(maneuver["length"]),
+    ) for maneuver in result["maneuvers"]]
+    route = dict(x=x, y=y, maneuvers=maneuvers, engine="libosmscout")
+    if route and route["x"]:
+        cache[url] = copy.deepcopy(route)
+    return route
 
-    # valhalla router
-    else:
-        legs = result["trip"]["legs"][0]
-        x, y = poor.util.decode_epl(legs["shape"], precision=6)
-        maneuvers = [dict(
-            x=float(x[maneuver["begin_shape_index"]]),
-            y=float(y[maneuver["begin_shape_index"]]),
-            icon=ICONS.get(maneuver["type"], "flag"),
-            narrative=maneuver["instruction"],
-            duration=float(maneuver["time"]),
-        ) for maneuver in legs["maneuvers"]]
-        route = dict(x=x, y=y, maneuvers=maneuvers, engine="Valhalla")
-        
+def parse_result_valhalla(url, result):
+    """Parse and return route from Valhalla engine."""
+    legs = result["trip"]["legs"][0]
+    x, y = poor.util.decode_epl(legs["shape"], precision=6)
+    maneuvers = [dict(
+        x=float(x[maneuver["begin_shape_index"]]),
+        y=float(y[maneuver["begin_shape_index"]]),
+        icon=ICONS.get(maneuver["type"], "flag"),
+        narrative=maneuver["instruction"],
+        duration=float(maneuver["time"]),
+    ) for maneuver in legs["maneuvers"]]
+    route = dict(x=x, y=y, maneuvers=maneuvers, engine="Valhalla")
     if route and route["x"]:
         cache[url] = copy.deepcopy(route)
     return route
