@@ -7,9 +7,8 @@ rename "s/_/-/g" *.svg
 sed -i "s/#000000/#ffffff/g" *.svg
 ```
 
-In addition, a ferry icon was borrowed from Mapbox's Maki icon set
-[maki][2]. The ferry icon (15x15) was used with the color inversion
-and scaled to fit 20x20 pixel size document.
+The ferry icon is borrowed from Mapbox's [Maki Icon Set][2], available
+under the CC0 license.
 
 [1]: https://github.com/mapbox/directions-icons
 [2]: https://github.com/mapbox/maki
