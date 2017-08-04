@@ -26,6 +26,8 @@ import statistics
 import subprocess
 import tempfile
 
+from poor.i18n import _
+
 __all__ = ("Narrative",)
 
 
@@ -253,8 +255,9 @@ class Narrative:
             elif self.current_maneuver.is_same(maneuver):
                 if ( self.current_maneuver.verbal_alert is not None and
                      ( man_dist_value < 200 or man_time_value < 30 ) ):
-                    ### TODO: hook translations
-                    cmd = "In %s, %s" % (man_dist,  self.current_maneuver.verbal_alert)
+                    cmd = _("In {distance}, {command}").format(
+                        distance = poor.util.format_distance(man_dist_value, voice=True),
+                        command = self.current_maneuver.verbal_alert)
                     voice_to_play = self.voice_engine.command(cmd)
                     self.current_maneuver.verbal_alert = None
 

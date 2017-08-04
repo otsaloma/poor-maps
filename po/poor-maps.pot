@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-07-09 22:06+0300\n"
+"POT-Creation-Date: 2017-08-04 23:34+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "Point from geo link"
 msgstr ""
 
-#: poor/geocoder.py:88 poor/guide.py:94 poor/router.py:93
+#: poor/geocoder.py:88 poor/guide.py:94 poor/router.py:94
 msgid "Connection timed out"
 msgstr ""
 
@@ -30,63 +30,92 @@ msgstr ""
 #: qml/RoutePage.qml:27 qml/RoutePage.qml:28 qml/RoutePage.qml:78
 #: qml/RoutePage.qml:86 qml/RoutePage.qml:111 qml/RoutePage.qml:119
 #: qml/RoutePage.qml:169 qml/RoutePage.qml:174 qml/RoutePage.qml:176
-#: qml/RoutePointPage.qml:88 qml/RoutePointPage.qml:91
+#: qml/RoutePage.qml:180 qml/RoutePointPage.qml:88 qml/RoutePointPage.qml:91
+#: TEST/RoutePage.qml:27 TEST/RoutePage.qml:28 TEST/RoutePage.qml:78
+#: TEST/RoutePage.qml:86 TEST/RoutePage.qml:111 TEST/RoutePage.qml:119
+#: TEST/RoutePage.qml:169 TEST/RoutePage.qml:174 TEST/RoutePage.qml:176
+#: TEST/RoutePage.qml:180
 msgid "Current position"
 msgstr ""
 
-#: poor/util.py:228 poor/util.py:236
+#: poor/narrative.py:258
+#, python-brace-format
+msgid "In {distance}, {command}"
+msgstr ""
+
+#: poor/util.py:178 poor/util.py:198
+msgid "miles"
+msgstr ""
+
+#: poor/util.py:184
+msgid "feet"
+msgstr ""
+
+#: poor/util.py:204
+msgid "yards"
+msgstr ""
+
+#: poor/util.py:218
+msgid "kilometers"
+msgstr ""
+
+#: poor/util.py:224
+msgid "meters"
+msgstr ""
+
+#: poor/util.py:240 poor/util.py:248
 #, python-brace-format
 msgid "{distance} north"
 msgstr ""
 
-#: poor/util.py:229
+#: poor/util.py:241
 #, python-brace-format
 msgid "{distance} north-east"
 msgstr ""
 
-#: poor/util.py:230
+#: poor/util.py:242
 #, python-brace-format
 msgid "{distance} east"
 msgstr ""
 
-#: poor/util.py:231
+#: poor/util.py:243
 #, python-brace-format
 msgid "{distance} south-east"
 msgstr ""
 
-#: poor/util.py:232
+#: poor/util.py:244
 #, python-brace-format
 msgid "{distance} south"
 msgstr ""
 
-#: poor/util.py:233
+#: poor/util.py:245
 #, python-brace-format
 msgid "{distance} south-west"
 msgstr ""
 
-#: poor/util.py:234
+#: poor/util.py:246
 #, python-brace-format
 msgid "{distance} west"
 msgstr ""
 
-#: poor/util.py:235
+#: poor/util.py:247
 #, python-brace-format
 msgid "{distance} north-west"
 msgstr ""
 
-#: poor/util.py:273
+#: poor/util.py:285
 msgid "{:d} min"
 msgstr ""
 
-#: poor/util.py:274
+#: poor/util.py:286
 msgid "{:d} h {:d} min"
 msgstr ""
 
-#: poor/util.py:327
+#: poor/util.py:339
 msgid "Routing courtesy of {}."
 msgstr ""
 
-#: poor/util.py:328
+#: poor/util.py:340
 #, python-brace-format
 msgid "Routing by {engine}, courtesy of {service}."
 msgstr ""
@@ -289,6 +318,7 @@ msgid "Search"
 msgstr ""
 
 #: qml/GeocodePage.qml:85 qml/NearbyPage.qml:63 qml/RoutePage.qml:53
+#: TEST/RoutePage.qml:53
 msgid "Using"
 msgstr ""
 
@@ -323,6 +353,7 @@ msgid "Unnamed point"
 msgstr ""
 
 #: qml/MenuPage.qml:55 qml/NarrativePage.qml:107 qml/RoutePage.qml:48
+#: TEST/RoutePage.qml:48
 msgid "Navigation"
 msgstr ""
 
@@ -374,19 +405,19 @@ msgstr ""
 msgid "Begin"
 msgstr ""
 
-#: qml/NarrativePage.qml:123
+#: qml/NarrativePage.qml:126
 msgid "Pause"
 msgstr ""
 
-#: qml/NarrativePage.qml:130
+#: qml/NarrativePage.qml:136
 msgid "Clear"
 msgstr ""
 
-#: qml/NarrativePage.qml:146
+#: qml/NarrativePage.qml:155
 msgid "Distance remaining"
 msgstr ""
 
-#: qml/NarrativePage.qml:154
+#: qml/NarrativePage.qml:163
 msgid "Time remaining"
 msgstr ""
 
@@ -447,11 +478,19 @@ msgstr ""
 msgid "Web"
 msgstr ""
 
-#: qml/PositionMarker.qml:66
+#: qml/poor-maps.qml:123
+msgid "Finding new route"
+msgstr ""
+
+#: qml/poor-maps.qml:144
+msgid "New route not found"
+msgstr ""
+
+#: qml/PositionMarker.qml:66 TEST/PositionMarker.qml:66
 msgid "Auto-center off"
 msgstr ""
 
-#: qml/PositionMarker.qml:69
+#: qml/PositionMarker.qml:69 TEST/PositionMarker.qml:69
 msgid "Auto-center on"
 msgstr ""
 
@@ -531,15 +570,15 @@ msgstr ""
 msgid "Examine map tile cache"
 msgstr ""
 
-#: qml/RoutePage.qml:68
+#: qml/RoutePage.qml:68 TEST/RoutePage.qml:68
 msgid "From"
 msgstr ""
 
-#: qml/RoutePage.qml:101
+#: qml/RoutePage.qml:101 TEST/RoutePage.qml:101
 msgid "To"
 msgstr ""
 
-#: qml/RoutePage.qml:151
+#: qml/RoutePage.qml:151 TEST/RoutePage.qml:151
 msgid "Reverse endpoints"
 msgstr ""
 
