@@ -85,9 +85,12 @@ def route(fm, fmdir, to, params):
     fm, to = map(prepare_endpoint, (fm, to))
     if fmdir is not None: fm['heading'] = fmdir
     lang = poor.util.get_default_language("en")
+    if poor.conf.units == "american": units = "miles"
+    elif poor.conf.units == "british": units = "miles"
+    else: units = "kilometers"
     input = dict(locations=[fm, to],
                  costing=poor.conf.routers.mapzen.type,
-                 directions_options=dict(language=lang))
+                 directions_options=dict(language=lang, units=units))
 
     input = urllib.parse.quote(json.dumps(input))
     url = URL.format(**locals())
