@@ -21,7 +21,7 @@ import QtPositioning 5.3
 
 Timer {
     id: timer
-    interval: 3000
+    interval: 1000
     repeat: true
     running: app.running && map.hasRoute && map.showNarrative
     triggeredOnStart: true
