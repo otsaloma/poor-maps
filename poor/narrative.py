@@ -279,7 +279,7 @@ class Narrative:
                     narrative=narrative,
                     direction=direction,
                     reroute=reroute,
-                    voice_to_play = voice_to_play)
+                    voice_to_play=voice_to_play)
 
     def _get_display_destination(self, x, y, node, seg_dist):
         """Return destination details to display."""
@@ -361,7 +361,8 @@ class Narrative:
                     icon=icon,
                     narrative=narrative,
                     direction=direction,
-                    reroute=False)
+                    reroute=False,
+                    voice_to_play=None)
 
     def get_maneuvers(self, x, y):
         """Return a list of dictionaries of maneuver details."""
