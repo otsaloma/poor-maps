@@ -261,6 +261,8 @@ Map {
             map.autoCenter = true;
             map.autoRotate = true;
         });
+        py.call("poor.app.narrative.set_voice", [true], null);
+        py.call("poor.app.narrative.start", null, null);
     }
 
     function reRoute(route) {
@@ -287,6 +289,7 @@ Map {
         map.saveManeuvers();
         map.hidePoiBubbles();
         map.addManeuvers(route.maneuvers);
+        py.call("poor.app.narrative.start", null, null);
     }
 
     function centerOnPosition() {

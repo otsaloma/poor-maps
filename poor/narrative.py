@@ -18,8 +18,13 @@
 """Narration of routing maneuvers."""
 
 import bisect
+import copy
+import os
 import poor
+import shutil
 import statistics
+import subprocess
+import tempfile
 
 __all__ = ("Narrative",)
 
@@ -34,11 +39,58 @@ class Maneuver:
         self.icon = "flag"
         self.length = 0
         self.narrative = ""
+        self.verbal_alert = None
+        self.verbal_pre = None
+        self.verbal_post = None
         self.node = None
         self.x = None
         self.y = None
         for name in set(kwargs) & set(dir(self)):
             setattr(self, name, kwargs[name])
+        if self.verbal_alert is None: self.verbal_alert = self.narrative
+        if self.verbal_pre is None: self.verbal_pre = self.narrative
+
+    def is_same(self, maneuver):
+        """Check if the maneuver matches self"""
+        tol = 1e-6
+        return ( maneuver.node == self.node and
+                 abs(maneuver.x - self.x) < tol and
+                 abs(maneuver.y - self.y) < tol )
+
+
+class VoiceCommand:
+
+    """Voice command generator"""
+
+    def __init__(self):
+        """Initialize a :class:`VoiceCommand` instance."""
+        self.tmpdir = None
+        self.engine = "espeak"
+        self.voice = "en" ### TODO, hook languages and argument
+        self.previous_command = None
+        self.tmpdir = tempfile.mkdtemp(prefix="poor-maps-")
+
+    def __del__(self):
+        if self.tmpdir:
+            shutil.rmtree(self.tmpdir)
+
+    def clear_command(self):
+        if self.previous_command:
+            os.remove(self.previous_command)
+            self.previous_command = None
+
+    def command(self, cmd):
+        self.clear_command()
+        self.previous_command = tempfile.mktemp(suffix=".wav", dir = self.tmpdir)
+
+        if self.engine == "espeak":
+            with open(self.previous_command, "w") as f:
+                if subprocess.call(['espeak', '--stdout', cmd], stdout=f) != 0:
+                    self.previous_command = None
+        else:
+            # unknown engine
+            self.previous_command = None
+        return self.previous_command
 
 
 class Narrative:
@@ -54,6 +106,12 @@ class Narrative:
         self.time = []
         self.x = []
         self.y = []
+        self.current_maneuver = None
+        self.voice_commands = True
+        self.distance_route_too_far = 200.0 # [meter] used to check whether route is too far to display instructions
+        self.distance_route_init_reroute = 200.0 # [meter] when distance from route is exceeded, triggers rerouting calculations
+        self.voice_engine = VoiceCommand()
+        self.navigation_active = False
 
     def _calculate_direction_ahead(self, node):
         """Return direction of the segment from `node` ahead."""
@@ -166,20 +224,51 @@ class Narrative:
         dest_dist = poor.util.format_distance(dest_dist)
         dest_time = poor.util.format_time(dest_time)
         man = self._get_display_maneuver(x, y, node, seg_dists)
-        man_node, man_dist, man_time, icon, narrative = man
+        man_node, man_dist, man_time, icon, narrative, maneuver = man
+        man_dist_value, man_time_value = man_dist, man_time
         man_dist = poor.util.format_distance(man_dist)
         man_time = poor.util.format_time(man_time)
-        if seg_dist > 200:
+        if seg_dist > self.distance_route_too_far:
             # Don't show the narrative or details calculated
             # from nodes along the route if far off route.
             dest_time = man_time = icon = narrative = None
         reroute = False
-        reroute_distance = 200 # in meters
+        reroute_distance = self.distance_route_init_reroute
         if accuracy_valid: reroute_distance += accuracy
         if seg_dist > reroute_distance:
             reroute = True
         # Don't provide route direction to auto-rotate by if off route.
         direction = self._get_direction(x, y, node) if seg_dist < 50 else None
+
+        # voice commands support
+        voice_to_play = None
+        if ( self.navigation_active and
+             self.voice_commands and
+             seg_dist < self.distance_route_too_far ):
+            # no voice commands when too far from the route
+            if self.current_maneuver is None:
+                # just starting, not much to do this time
+                self.current_maneuver = copy.deepcopy(maneuver)
+
+            elif self.current_maneuver.is_same(maneuver):
+                if ( self.current_maneuver.verbal_alert is not None and
+                     ( man_dist_value < 200 or man_time_value < 30 ) ):
+                    ### TODO: hook translations
+                    cmd = "In %s, %s" % (man_dist,  self.current_maneuver.verbal_alert)
+                    voice_to_play = self.voice_engine.command(cmd)
+                    self.current_maneuver.verbal_alert = None
+
+                elif ( self.current_maneuver.verbal_pre is not None and
+                     ( man_dist_value < 50 or man_time_value < 5 ) ):
+                    voice_to_play = self.voice_engine.command(self.current_maneuver.verbal_pre)
+                    self.current_maneuver.verbal_pre = None
+
+            else: # maneuver changed
+                if self.current_maneuver.verbal_post is not None:
+                    voice_to_play = self.voice_engine.command(self.current_maneuver.verbal_post)
+                    self.current_maneuver.verbal_post = None
+                self.current_maneuver = copy.deepcopy(maneuver)
+
         return dict(total_dist=poor.util.format_distance(max(self.dist)),
                     total_time=poor.util.format_time(max(self.time)),
                     dest_dist=dest_dist,
@@ -189,7 +278,8 @@ class Narrative:
                     icon=icon,
                     narrative=narrative,
                     direction=direction,
-                    reroute=reroute)
+                    reroute=reroute,
+                    voice_to_play = voice_to_play)
 
     def _get_display_destination(self, x, y, node, seg_dist):
         """Return destination details to display."""
@@ -221,7 +311,7 @@ class Narrative:
             # Use exact straight-line value at the very end.
             man_dist = poor.util.calculate_distance(
                 x, y, maneuver.x, maneuver.y)
-        return man_node, man_dist, man_time, maneuver.icon, maneuver.narrative
+        return man_node, man_dist, man_time, maneuver.icon, maneuver.narrative, maneuver
 
     def _get_display_transit(self, x, y):
         """Return a dictionary of status details to display."""
@@ -336,6 +426,10 @@ class Narrative:
         """
         self.mode = mode
 
+    def set_voice(self, voice):
+        """Set voice commands mode"""
+        self.voice_commands = voice
+
     def set_route(self, x, y):
         """Set route from coordinates."""
         self.x = x
@@ -372,3 +466,14 @@ class Narrative:
         self.time = []
         self.x = []
         self.y = []
+        self.current_maneuver = None
+
+    def start(self):
+        """Start navigation"""
+        self.current_maneuver = None
+        self.navigation_active = True
+
+    def end(self):
+        """End navigation"""
+        self.current_maneuver = None
+        self.navigation_active = False

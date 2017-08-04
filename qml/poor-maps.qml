@@ -18,6 +18,7 @@
 
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import QtMultimedia 5.2
 import org.nemomobile.keepalive 1.0
 import "."
 
@@ -58,6 +59,13 @@ ApplicationWindow {
     Root { id: root }
     PositionSource { id: gps }
     Python { id: py }
+
+    Audio {
+        id: sound
+        loops: 1
+        autoLoad: true
+        autoPlay: true
+    }
 
     Component.onCompleted: {
         py.setHandler("queue-update", map.queueUpdate);
@@ -151,6 +159,10 @@ ApplicationWindow {
 
             if (status.reroute && app.navigationReroutable && app.navigationActive)  {
                 app.navigationReroute();
+            }
+
+            if (status.voice_to_play) {
+                sound.source = "file://" + status.voice_to_play
             }
         } else {
             app.navigationBlock.destDist  = "";

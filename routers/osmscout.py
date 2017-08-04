@@ -145,6 +145,9 @@ def parse_result_valhalla(url, result):
         y=float(y[maneuver.begin_shape_index]),
         icon=ICONS.get(maneuver.type, "flag"),
         narrative=maneuver.instruction,
+        verbal_alert=maneuver.get("verbal_transition_alert_instruction", None),
+        verbal_pre=maneuver.get("verbal_pre_transition_instruction", None),
+        verbal_post=maneuver.get("verbal_post_transition_instruction", None),
         duration=float(maneuver.time),
     ) for maneuver in legs.maneuvers]
     route = dict(x=x, y=y, maneuvers=maneuvers)
