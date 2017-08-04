@@ -360,7 +360,8 @@ class Narrative:
                     man_time=man_time,
                     icon=icon,
                     narrative=narrative,
-                    direction=direction)
+                    direction=direction,
+                    reroute=False)
 
     def get_maneuvers(self, x, y):
         """Return a list of dictionaries of maneuver details."""
