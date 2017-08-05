@@ -447,3 +447,8 @@ class Narrative:
         """End navigation"""
         self.current_maneuver = None
         self.navigation_active = False
+
+    def quit(self):
+        """Cleanup before quiting application"""
+        del self.voice_engine
+        self.voice_engine = None

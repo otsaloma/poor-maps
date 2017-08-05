@@ -40,6 +40,8 @@ class VoiceCommand:
     def __del__(self):
         if self.tmpdir:
             shutil.rmtree(self.tmpdir)
+            self.tmpdir = None
+            self.previous_command = None
 
     def clear_command(self):
         if self.previous_command:
