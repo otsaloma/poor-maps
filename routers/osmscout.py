@@ -27,7 +27,10 @@ import json
 import poor
 import urllib.parse
 
-CONF_DEFAULTS = {"type": "auto"}
+CONF_DEFAULTS = {
+    "type": "auto",
+    "language": poor.util.get_default_language("en")
+}
 
 ICONS = {
      0: "flag",
@@ -103,13 +106,14 @@ def route(fm, fmdir, to, params):
     """Find route and return its properties as a dictionary."""
     fm, to = map(prepare_endpoint, (fm, to))
     if fmdir is not None: fm['heading'] = fmdir
-    lang = poor.util.get_default_language("en")
+    #lang = poor.util.get_default_language("en")
     if poor.conf.units == "american": units = "miles"
     elif poor.conf.units == "british": units = "miles"
     else: units = "kilometers"
     input = dict(locations=[fm, to],
                  costing=poor.conf.routers.osmscout.type,
-                 directions_options=dict(language=lang, units=units))
+                 directions_options=dict(language=poor.conf.routers.osmscout.language,
+                                         units=units))
 
     input = urllib.parse.quote(json.dumps(input))
     url = URL.format(**locals())

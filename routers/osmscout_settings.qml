@@ -40,4 +40,22 @@ Column {
         }
     }
 
+    ComboBox {
+        id: langComboBox
+        label: app.tr("Language")
+        menu: ContextMenu {
+            MenuItem { text: app.tr("English") }
+            MenuItem { text: app.tr("English Pirate") }
+        }
+        property var keys: ["en", "en-US-x-pirate"]
+        Component.onCompleted: {
+            var key = app.conf.get("routers.osmscout.language");
+            langComboBox.currentIndex = langComboBox.keys.indexOf(key);
+        }
+        onCurrentIndexChanged: {
+            var option = "routers.osmscout.language";
+            app.conf.set(option, langComboBox.keys[langComboBox.currentIndex]);
+        }
+    }
+
 }
