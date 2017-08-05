@@ -27,6 +27,7 @@ import subprocess
 import tempfile
 
 from poor.i18n import _
+from poor.voicecommand import VoiceCommand
 
 __all__ = ("Narrative",)
 
@@ -58,42 +59,6 @@ class Maneuver:
         return ( maneuver.node == self.node and
                  abs(maneuver.x - self.x) < tol and
                  abs(maneuver.y - self.y) < tol )
-
-
-class VoiceCommand:
-
-    """Voice command generator"""
-
-    def __init__(self):
-        """Initialize a :class:`VoiceCommand` instance."""
-        self.tmpdir = None
-        self.engine = "espeak"
-        self.voice = "en" ### TODO, hook languages and argument
-        self.previous_command = None
-        self.tmpdir = tempfile.mkdtemp(prefix="poor-maps-")
-
-    def __del__(self):
-        if self.tmpdir:
-            shutil.rmtree(self.tmpdir)
-
-    def clear_command(self):
-        if self.previous_command:
-            os.remove(self.previous_command)
-            self.previous_command = None
-
-    def command(self, cmd):
-        self.clear_command()
-        self.previous_command = tempfile.mktemp(suffix=".wav", dir = self.tmpdir)
-
-        if self.engine == "espeak":
-            with open(self.previous_command, "w") as f:
-                if subprocess.call(['espeak', '--stdout', cmd], stdout=f) != 0:
-                    self.previous_command = None
-        else:
-            # unknown engine
-            self.previous_command = None
-        return self.previous_command
-
 
 class Narrative:
 
