@@ -29,7 +29,7 @@ import urllib.parse
 
 CONF_DEFAULTS = {
     "type": "auto",
-    "language": poor.util.get_default_language("en")
+    "language": poor.util.get_default_language()
 }
 
 ICONS = {

@@ -44,13 +44,24 @@ Column {
         id: langComboBox
         label: app.tr("Language")
         menu: ContextMenu {
-            MenuItem { text: app.tr("English") }
+            MenuItem { text: app.tr("Catalan") }
+            MenuItem { text: app.tr("Czech") }
+            MenuItem { text: app.tr("German") }
+            MenuItem { text: app.tr("English (US)") }
             MenuItem { text: app.tr("English Pirate") }
+            MenuItem { text: app.tr("Spanish") }
+            MenuItem { text: app.tr("Hindi") }
+            MenuItem { text: app.tr("Italian") }
+            MenuItem { text: app.tr("Russian") }
+            MenuItem { text: app.tr("Slovenian") }
+            MenuItem { text: app.tr("Swedish") }
         }
-        property var keys: ["en", "en-US-x-pirate"]
+        property var keys: ["ca", "cs", "de", "en", "en-US-x-pirate", "es", "hi", "it", "ru", "sl", "sv"]
         Component.onCompleted: {
             var key = app.conf.get("routers.osmscout.language");
-            langComboBox.currentIndex = langComboBox.keys.indexOf(key);
+            var ind = langComboBox.keys.indexOf(key);
+            if (ind < 0) ind = 3; // English (US)
+            langComboBox.currentIndex = ind;
         }
         onCurrentIndexChanged: {
             var option = "routers.osmscout.language";
