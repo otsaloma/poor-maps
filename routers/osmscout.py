@@ -139,6 +139,7 @@ def parse_result_libosmscout(url, result):
     route = dict(x=x, y=y, maneuvers=maneuvers)
     route["attribution"] = poor.util.get_routing_attribution(
         "OSM Scout", "libosmscout")
+    route["language"] = result.language
     if route and route["x"]:
         cache[url] = copy.deepcopy(route)
     return route
@@ -160,6 +161,7 @@ def parse_result_valhalla(url, result):
     route = dict(x=x, y=y, maneuvers=maneuvers)
     route["attribution"] = poor.util.get_routing_attribution(
         "OSM Scout", "Valhalla")
+    route["language"] = result.trip.language
     if route and route["x"]:
         cache[url] = copy.deepcopy(route)
     return route

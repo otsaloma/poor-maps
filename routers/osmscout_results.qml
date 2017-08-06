@@ -53,7 +53,8 @@ Page {
                     "x": route.x,
                     "y": route.y,
                     "mode": "car",
-                    "attribution": route.attribution
+                    "attribution": route.attribution,
+                    "language": route.language
                 });
                 map.hidePoiBubbles();
                 map.fitViewToRoute();

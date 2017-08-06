@@ -42,6 +42,9 @@ DEFAULTS = {
     "show_routing_narrative": True,
     # "metric", "american" or "british".
     "units": "metric",
+    "voice_commands": True,
+    # male or female
+    "voice_sex": "male",
     "zoom": 3,
 }
 

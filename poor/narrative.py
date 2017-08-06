@@ -74,7 +74,6 @@ class Narrative:
         self.x = []
         self.y = []
         self.current_maneuver = None
-        self.voice_commands = True
         self.distance_route_too_far = 200.0 # [meter] used to check whether route is too far to display instructions
         self.distance_route_too_far_for_direction = 50.0 # [meter] don't auto-rotate when exceeding this distance
         self.distance_route_init_reroute = 200.0 # [meter] when distance from route is exceeded, triggers rerouting calculations
@@ -209,7 +208,7 @@ class Narrative:
         # voice commands support
         voice_to_play = None
         if ( self.navigation_active and
-             self.voice_commands and
+             self.voice_engine.active() and
              seg_dist < self.distance_route_too_far ):
             # no voice commands when too far from the route
             if self.current_maneuver is None:
@@ -395,9 +394,9 @@ class Narrative:
         """
         self.mode = mode
 
-    def set_voice(self, voice):
+    def set_voice(self, language, sex = "male"):
         """Set voice commands mode"""
-        self.voice_commands = voice
+        self.voice_engine.set_voice(language, sex)
 
     def set_route(self, x, y):
         """Set route from coordinates."""

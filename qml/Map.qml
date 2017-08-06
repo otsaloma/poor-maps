@@ -242,6 +242,11 @@ Map {
         map.route.mode = route.mode || "car";
         map.route.redraw();
         py.call_sync("poor.app.narrative.set_mode", [route.mode || "car"]);
+        if (app.conf.get("voice_commands")) {
+            py.call_sync("poor.app.narrative.set_voice", [route.language, app.conf.get("voice_sex")], null);
+        } else {
+            py.call_sync("poor.app.narrative.set_voice", [null])
+        }
         py.call("poor.app.narrative.set_route", [route.x, route.y], function() {
             map.hasRoute = true;
         });
@@ -261,7 +266,6 @@ Map {
             map.autoCenter = true;
             map.autoRotate = true;
         });
-        py.call("poor.app.narrative.set_voice", [true], null);
         py.call("poor.app.narrative.start", null, null);
     }
 
