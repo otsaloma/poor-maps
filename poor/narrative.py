@@ -76,6 +76,7 @@ class Narrative:
         self.current_maneuver = None
         self.voice_commands = True
         self.distance_route_too_far = 200.0 # [meter] used to check whether route is too far to display instructions
+        self.distance_route_too_far_for_direction = 50.0 # [meter] don't auto-rotate when exceeding this distance
         self.distance_route_init_reroute = 200.0 # [meter] when distance from route is exceeded, triggers rerouting calculations
         self.voice_engine = VoiceCommand()
         self.navigation_active = False
@@ -178,7 +179,7 @@ class Narrative:
                 x, y, x1, y1, x2, y2))
         return dist
 
-    def get_display(self, x, y, accuracy, accuracy_valid):
+    def get_display(self, x, y, accuracy=None):
         """Return a dictionary of status details to display."""
         if not self.ready: return None
         if self.mode == "transit":
@@ -199,13 +200,11 @@ class Narrative:
             # Don't show the narrative or details calculated
             # from nodes along the route if far off route.
             dest_time = man_time = icon = narrative = None
-        reroute = False
-        reroute_distance = self.distance_route_init_reroute
-        if accuracy_valid: reroute_distance += accuracy
-        if seg_dist > reroute_distance:
-            reroute = True
+
         # Don't provide route direction to auto-rotate by if off route.
-        direction = self._get_direction(x, y, node) if seg_dist < 50 else None
+        direction = self._get_direction(x, y, node) if seg_dist < self.distance_route_too_far_for_direction else None
+        # Trigger rerouting if far off route.
+        reroute = seg_dist > self.distance_route_init_reroute + (accuracy or 40000000)
 
         # voice commands support
         voice_to_play = None

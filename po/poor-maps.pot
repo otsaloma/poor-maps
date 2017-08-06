@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-04 23:34+0300\n"
+"POT-Creation-Date: 2017-08-06 11:53+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "Point from geo link"
 msgstr ""
 
-#: poor/geocoder.py:88 poor/guide.py:94 poor/router.py:94
+#: poor/geocoder.py:88 poor/guide.py:94 poor/router.py:96
 msgid "Connection timed out"
 msgstr ""
 
@@ -31,14 +31,10 @@ msgstr ""
 #: qml/RoutePage.qml:86 qml/RoutePage.qml:111 qml/RoutePage.qml:119
 #: qml/RoutePage.qml:169 qml/RoutePage.qml:174 qml/RoutePage.qml:176
 #: qml/RoutePage.qml:180 qml/RoutePointPage.qml:88 qml/RoutePointPage.qml:91
-#: TEST/RoutePage.qml:27 TEST/RoutePage.qml:28 TEST/RoutePage.qml:78
-#: TEST/RoutePage.qml:86 TEST/RoutePage.qml:111 TEST/RoutePage.qml:119
-#: TEST/RoutePage.qml:169 TEST/RoutePage.qml:174 TEST/RoutePage.qml:176
-#: TEST/RoutePage.qml:180
 msgid "Current position"
 msgstr ""
 
-#: poor/narrative.py:258
+#: poor/narrative.py:222
 #, python-brace-format
 msgid "In {distance}, {command}"
 msgstr ""
@@ -318,7 +314,6 @@ msgid "Search"
 msgstr ""
 
 #: qml/GeocodePage.qml:85 qml/NearbyPage.qml:63 qml/RoutePage.qml:53
-#: TEST/RoutePage.qml:53
 msgid "Using"
 msgstr ""
 
@@ -353,7 +348,6 @@ msgid "Unnamed point"
 msgstr ""
 
 #: qml/MenuPage.qml:55 qml/NarrativePage.qml:107 qml/RoutePage.qml:48
-#: TEST/RoutePage.qml:48
 msgid "Navigation"
 msgstr ""
 
@@ -405,19 +399,19 @@ msgstr ""
 msgid "Begin"
 msgstr ""
 
-#: qml/NarrativePage.qml:126
+#: qml/NarrativePage.qml:123
 msgid "Pause"
 msgstr ""
 
-#: qml/NarrativePage.qml:136
+#: qml/NarrativePage.qml:130
 msgid "Clear"
 msgstr ""
 
-#: qml/NarrativePage.qml:155
+#: qml/NarrativePage.qml:148
 msgid "Distance remaining"
 msgstr ""
 
-#: qml/NarrativePage.qml:163
+#: qml/NarrativePage.qml:156
 msgid "Time remaining"
 msgstr ""
 
@@ -478,11 +472,11 @@ msgstr ""
 msgid "Web"
 msgstr ""
 
-#: qml/poor-maps.qml:123
+#: qml/poor-maps.qml:122
 msgid "Finding new route"
 msgstr ""
 
-#: qml/poor-maps.qml:144
+#: qml/poor-maps.qml:145
 msgid "New route not found"
 msgstr ""
 
@@ -570,15 +564,15 @@ msgstr ""
 msgid "Examine map tile cache"
 msgstr ""
 
-#: qml/RoutePage.qml:68 TEST/RoutePage.qml:68
+#: qml/RoutePage.qml:68
 msgid "From"
 msgstr ""
 
-#: qml/RoutePage.qml:101 TEST/RoutePage.qml:101
+#: qml/RoutePage.qml:101
 msgid "To"
 msgstr ""
 
-#: qml/RoutePage.qml:151 TEST/RoutePage.qml:151
+#: qml/RoutePage.qml:151
 msgid "Reverse endpoints"
 msgstr ""
 
@@ -692,6 +686,54 @@ msgstr ""
 
 #: routers/mapquest_open_settings.qml:48
 msgid "Try to avoid tolls"
+msgstr ""
+
+#: routers/osmscout_settings.qml:45
+msgid "Language"
+msgstr ""
+
+#: routers/osmscout_settings.qml:47
+msgid "Catalan"
+msgstr ""
+
+#: routers/osmscout_settings.qml:48
+msgid "Czech"
+msgstr ""
+
+#: routers/osmscout_settings.qml:49
+msgid "German"
+msgstr ""
+
+#: routers/osmscout_settings.qml:50
+msgid "English (US)"
+msgstr ""
+
+#: routers/osmscout_settings.qml:51
+msgid "English Pirate"
+msgstr ""
+
+#: routers/osmscout_settings.qml:52
+msgid "Spanish"
+msgstr ""
+
+#: routers/osmscout_settings.qml:53
+msgid "Hindi"
+msgstr ""
+
+#: routers/osmscout_settings.qml:54
+msgid "Italian"
+msgstr ""
+
+#: routers/osmscout_settings.qml:55
+msgid "Russian"
+msgstr ""
+
+#: routers/osmscout_settings.qml:56
+msgid "Slovenian"
+msgstr ""
+
+#: routers/osmscout_settings.qml:57
+msgid "Swedish"
 msgstr ""
 
 #: qml/js/util.js:94

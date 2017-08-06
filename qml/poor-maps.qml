@@ -123,7 +123,9 @@ ApplicationWindow {
         // Prevent new reroute calculations before this route is ready
         app.navigationReroutable = false;
         // Start recalculations
-        var args = [map.getPosition(), gps.direction, app.navigationTarget];
+        // Note that rerouting does not allow us to relay params to the router,
+        // i.e. ones saved only temporarily as page.params in RoutePage.qml.
+        var args = [map.getPosition(), app.navigationTarget, gps.direction];
         py.call("poor.app.router.route", args, function(route) {
             if (route && route.error && route.message) {
                 app.routerInfo.setError(route.message);
