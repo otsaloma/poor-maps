@@ -142,7 +142,8 @@ ApplicationWindow {
                     "x": route.x,
                     "y": route.y,
                     "mode": route.mode || "car",
-                    "attribution": route.attribution || ""
+                    "attribution": route.attribution || "",
+                    "language": route.language
                 }, true);
                 map.addManeuvers(route.maneuvers);
                 app.rerouteConsecutiveErrors = 0;
