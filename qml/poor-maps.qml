@@ -45,10 +45,12 @@ ApplicationWindow {
     property bool navigationActive: false
     property var  navigationBlock: null
     property var  navigationDirection: null
-    property bool navigationReroutable: false
     property var  navigationStatus: null
-    property var  navigationTarget: null
     property var  northArrow: null
+    property int  rerouteConsecutiveErrors: 0
+    property var  reroutePreviousTime: -1
+    property int  rerouteTotalCalls: 0
+    property bool rerouting: false
     property var  routerInfo: null
     property bool running: applicationActive || cover.active
     property var  scaleBar: null
@@ -118,33 +120,53 @@ ApplicationWindow {
         root.visible = true;
     }
 
-    function navigationReroute() {
-        app.routerInfo.setInfo(app.tr("Finding new route"))
-        // Prevent new reroute calculations before this route is ready
-        app.navigationReroutable = false;
-        // Start recalculations
+    function reroute() {
+        // Find a new route from the current position to the existing destination.
+        if (app.rerouting) return;
+        app.routerInfo.setInfo(app.tr("Rerouting"));
+        app.rerouting = true;
         // Note that rerouting does not allow us to relay params to the router,
         // i.e. ones saved only temporarily as page.params in RoutePage.qml.
-        var args = [map.getPosition(), app.navigationTarget, gps.direction];
+        var args = [map.getPosition(), map.route.getDestination(), gps.direction];
         py.call("poor.app.router.route", args, function(route) {
+            if (Array.isArray(route) && route.length > 0)
+                // If the router returns multiple alternative routes,
+                // always reroute using the first one.
+                route = route[0];
             if (route && route.error && route.message) {
                 app.routerInfo.setError(route.message);
+                app.rerouteConsecutiveErrors++;
             } else if (route && route.x && route.x.length > 0) {
-                app.hideMenu();
                 app.routerInfo.clear();
-                map.reRoute({
-                            "x": route.x,
-                            "y": route.y,
-                            "mode": "car",
-                            "attribution": route.attribution,
-                            "maneuvers": route.maneuvers
-                            });
-                app.clearMenu();
-                app.navigationReroutable = true;
+                map.addRoute({
+                    "x": route.x,
+                    "y": route.y,
+                    "mode": route.mode || "car",
+                    "attribution": route.attribution || ""
+                }, true);
+                map.addManeuvers(route.maneuvers);
+                app.rerouteConsecutiveErrors = 0;
             } else {
-                app.routerInfo.setError(app.tr("New route not found"));
+                app.routerInfo.setError(app.tr("Rerouting failed"));
+                app.rerouteConsecutiveErrors++;
             }
+            app.reroutePreviousTime = Date.now();
+            app.rerouteTotalCalls++;
+            app.rerouting = false;
         });
+    }
+
+    function rerouteMaybe() {
+        // Find a new route if conditions are met.
+        if (!app.navigationActive) return;
+        if (!gps.position.horizontalAccuracyValid) return;
+        if (gps.position.horizontalAccuracy > 100) return;
+        if (app.rerouteTotalCalls > 50) return;
+        // Double rerouting interval with each error, limit to one minute.
+        var interval = Math.pow(2, app.rerouteConsecutiveErrors) * 5000;
+        interval = Math.min(interval, 60000);
+        if (Date.now() - app.reroutePreviousTime < interval) return;
+        return app.reroute();
     }
 
     function setNavigationStatus(status) {
@@ -157,14 +179,6 @@ ApplicationWindow {
             app.navigationBlock.manTime   = status.man_time  || "";
             app.navigationBlock.narrative = status.narrative || "";
             app.navigationDirection       = status.direction || null;
-
-            if (status.reroute && app.navigationReroutable && app.navigationActive)  {
-                app.navigationReroute();
-            }
-
-            if (status.voice_to_play) {
-                sound.source = "file://" + status.voice_to_play
-            }
         } else {
             app.navigationBlock.destDist  = "";
             app.navigationBlock.destTime  = "";
@@ -175,6 +189,10 @@ ApplicationWindow {
             app.navigationDirection       = null;
         }
         app.navigationStatus = status;
+        status && status.reroute && app.rerouteMaybe();
+        if (status.voice_to_play) {
+            sound.source = "file://" + status.voice_to_play
+        }
     }
 
     function showMenu(page, params) {

@@ -175,16 +175,6 @@ Page {
                 page.from = map.getPosition();
             if (page.toText === app.tr("Current position"))
                 page.to = map.getPosition();
-
-            // support for navigation and rerouting
-            if (page.toText === app.tr("Current position")) {
-                app.navigationReroutable = false;
-                app.navigationTarget = null;
-            } else {
-                app.navigationReroutable = true;
-                app.navigationTarget = page.to;
-            }
-
             var uri = py.evaluate("poor.app.router.results_qml_uri");
             app.pageStack.pushAttached(uri);
         }
