@@ -78,6 +78,12 @@ class Narrative:
         self.distance_route_too_far_for_direction = 50.0 # [meter] don't auto-rotate when exceeding this distance
         self.distance_route_init_reroute = 200.0 # [meter] when distance from route is exceeded, triggers rerouting calculations
         self.voice_engine = VoiceCommand()
+        # voice commands: alert and pre parameters
+        self.voice_alert_distance = 200
+        self.voice_alert_time = 30
+        self.voice_pre_distance = 50
+        self.voice_pre_time = 5
+        
         self.navigation_active = False
 
     def _calculate_direction_ahead(self, node):
@@ -217,7 +223,8 @@ class Narrative:
 
             elif self.current_maneuver.is_same(maneuver):
                 if ( self.current_maneuver.verbal_alert is not None and
-                     ( man_dist_value < 200 or man_time_value < 30 ) ):
+                     ( man_dist_value < self.voice_alert_distance or
+                       man_time_value < self.voice_alert_time ) ):
                     cmd = _("In {distance}, {command}").format(
                         distance = poor.util.format_distance(man_dist_value, voice=True),
                         command = self.current_maneuver.verbal_alert)
@@ -225,7 +232,8 @@ class Narrative:
                     self.current_maneuver.verbal_alert = None
 
                 elif ( self.current_maneuver.verbal_pre is not None and
-                     ( man_dist_value < 50 or man_time_value < 5 ) ):
+                     ( man_dist_value < self.voice_pre_distance or
+                       man_time_value < self.voice_pre_time ) ):
                     voice_to_play = self.voice_engine.command(self.current_maneuver.verbal_pre)
                     self.current_maneuver.verbal_pre = None
 
