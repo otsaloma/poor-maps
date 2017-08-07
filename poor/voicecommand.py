@@ -73,6 +73,27 @@ class VoiceEngineBase:
 # and provide make_wav method.
 
 #######################################
+class VoiceEngineMimic(VoiceEngineBase):
+
+    """Interface to mimic"""
+
+    def __init__(self):
+        VoiceEngineBase.__init__(self)
+        self.languages = {
+            "en": { "male": "ap" },
+            "en-US": { "male": "ap" }
+        }
+        self.set_command(["mimic", "harbour-mimic"])
+
+    def make_wav(self, text, fname):
+        """Create a new WAV file specified by fname with the specified text
+        using given language and, if possible, sex"""
+        return subprocess.call([self.command,
+                                '-t', text,
+                                '-o', fname,
+                                '-voice', self.voice_name]) == 0
+
+#######################################
 class VoiceEngineFlite(VoiceEngineBase):
 
     """Interface to flite"""
@@ -134,7 +155,7 @@ class VoiceCommand:
         """Initialize a :class:`VoiceCommand` instance."""
         self.tmpdir = None
         # fill engines in the order of preference
-        self.engines = [ VoiceEngineFlite(), VoiceEngineEspeak() ]
+        self.engines = [ VoiceEngineMimic(), VoiceEngineFlite(), VoiceEngineEspeak() ]
         self.engine = None
         self.previous_command = None
         self.tmpdir = tempfile.mkdtemp(prefix="poor-maps-")
