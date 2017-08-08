@@ -199,7 +199,7 @@ ApplicationWindow {
         }
         app.navigationStatus = status;
         status && status.reroute && app.rerouteMaybe();
-        if (status.voice_to_play) {
+        if (status && status.voice_to_play) {
             sound.source = "file://" + status.voice_to_play
         }
     }
