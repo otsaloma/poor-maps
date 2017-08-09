@@ -22,6 +22,8 @@ import poor
 import shutil
 import subprocess
 import tempfile
+import threading
+import queue
 
 import poor.util
 
@@ -44,7 +46,7 @@ class VoiceEngineBase:
             if poor.util.requirement_found(cmd):
                 self.command = cmd
                 return
-        
+
     def supports(self, language):
         """Return true if the engine supports the requested language"""
         return self.command is not None and language in self.languages
@@ -146,7 +148,20 @@ class VoiceEngineEspeak(VoiceEngineBase):
                                        '-v', self.voice_name,
                                        text], stdout=f) == 0)
         return result
-    
+
+#######################################
+def voice_worker(queue_tasks, queue_results, engine, tmpdir):
+    while True:
+        cmd = queue_tasks.get()
+        if cmd is None:
+            break
+        fname = tempfile.mktemp(suffix=".wav", dir = tmpdir)
+        if not engine.make_wav( cmd, fname ):
+            fname = None
+        queue_results.put( (cmd, fname) )
+        queue_tasks.task_done()
+
+
 class VoiceCommand:
 
     """Voice command generator"""
@@ -157,19 +172,41 @@ class VoiceCommand:
         # fill engines in the order of preference
         self.engines = [ VoiceEngineMimic(), VoiceEngineFlite(), VoiceEngineEspeak() ]
         self.engine = None
-        self.previous_command = None
         self.tmpdir = tempfile.mkdtemp(prefix="poor-maps-")
+        self.worker_thread = None
+        self.queue_tasks = None
+        self.queue_results = None
+        self.cache = {}
 
     def __del__(self):
+        self._clean_worker()
+
         if self.tmpdir:
             shutil.rmtree(self.tmpdir)
             self.tmpdir = None
             self.previous_command = None
 
+    def _clean_worker(self):
+        if self.worker_thread is not None:
+            self.queue_tasks.put(None)
+            self.worker_thread.join()
+            self.worker_thread = None
+
+    def _clean_cache(self):
+        for cmd, fname in self.cache.items():
+            if fname is not None:
+                os.remove(fname)
+        self.cache = {}
+
+    def clean(self):
+        self._clean_worker()
+        self._clean_cache()
+
     def active(self):
         return self.engine is not None
 
     def set_voice(self, language, sex = "male"):
+        self.clean()
         if language is None:
             self.engine = None
         else:
@@ -180,17 +217,32 @@ class VoiceCommand:
                     return
         self.engine = None
 
-    def clear_command(self):
-        if self.previous_command:
-            os.remove(self.previous_command)
-            self.previous_command = None
-
-    def command(self, cmd):
+    def make(self, cmd):
         if self.engine is None:
-            return None
-        self.clear_command()
-        self.previous_command = tempfile.mktemp(suffix=".wav", dir = self.tmpdir)
-        if not self.engine.make_wav( cmd, self.previous_command ):
-            self.previous_command = None
-        return self.previous_command
+            return
+        if cmd in self.cache:
+            return
 
+        if self.worker_thread is None:
+            self.queue_tasks = queue.Queue()
+            self.queue_results = queue.Queue()
+            self.worker_thread = threading.Thread( target = voice_worker,
+                                                   kwargs = {'queue_tasks': self.queue_tasks,
+                                                             'queue_results': self.queue_results,
+                                                             'engine': self.engine,
+                                                             'tmpdir': self.tmpdir } )
+            self.worker_thread.start()
+
+        self.queue_tasks.put(cmd)
+
+    def get(self, cmd):
+        self._update_cache()
+        return self.cache.get(cmd, None)
+
+    def _update_cache(self):
+        if self.queue_results is None:
+            return
+        while not self.queue_results.empty():
+            cmd, fname = self.queue_results.get_nowait()
+            self.queue_results.task_done()
+            self.cache[cmd] = fname

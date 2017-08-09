@@ -45,6 +45,8 @@ class Maneuver:
         self.verbal_alert = None
         self.verbal_pre = None
         self.verbal_post = None
+        self.voice_alert_distance = None # distance at which verbal_alert should be voiced
+        self.verbal_alert_full = None
         self.node = None
         self.x = None
         self.y = None
@@ -55,10 +57,7 @@ class Maneuver:
 
     def is_same(self, maneuver):
         """Check if the maneuver matches self"""
-        tol = 1e-6
-        return ( maneuver.node == self.node and
-                 abs(maneuver.x - self.x) < tol and
-                 abs(maneuver.y - self.y) < tol )
+        return ( maneuver.node == self.node )
 
 class Narrative:
 
@@ -83,8 +82,8 @@ class Narrative:
         self.voice_alert_time = 30
         self.voice_pre_distance = 50
         self.voice_pre_time = 5
-        
-        self.navigation_active = False
+
+        self.navigation_active = False # True while navigating
 
     def _calculate_direction_ahead(self, node):
         """Return direction of the segment from `node` ahead."""
@@ -215,33 +214,38 @@ class Narrative:
         voice_to_play = None
         if ( self.navigation_active and
              self.voice_engine.active() and
-             seg_dist < self.distance_route_too_far ):
+             seg_dist < self.distance_route_too_far_for_direction ):
             # no voice commands when too far from the route
+
             if self.current_maneuver is None:
                 # just starting, not much to do this time
-                self.current_maneuver = copy.deepcopy(maneuver)
+                self._set_current_maneuver(maneuver)
 
             elif self.current_maneuver.is_same(maneuver):
-                if ( self.current_maneuver.verbal_alert is not None and
-                     ( man_dist_value < self.voice_alert_distance or
-                       man_time_value < self.voice_alert_time ) ):
-                    cmd = _("In {distance}, {command}").format(
-                        distance = poor.util.format_distance(man_dist_value, voice=True),
-                        command = self.current_maneuver.verbal_alert)
-                    voice_to_play = self.voice_engine.command(cmd)
-                    self.current_maneuver.verbal_alert = None
 
-                elif ( self.current_maneuver.verbal_pre is not None and
+                if ( self.current_maneuver.verbal_pre is not None and
                      ( man_dist_value < self.voice_pre_distance or
                        man_time_value < self.voice_pre_time ) ):
-                    voice_to_play = self.voice_engine.command(self.current_maneuver.verbal_pre)
+                    voice_to_play = self.voice_engine.get(self.current_maneuver.verbal_pre)
                     self.current_maneuver.verbal_pre = None
+                    self.current_maneuver.verbal_alert_full = None
+
+                elif ( self.current_maneuver.verbal_alert_full is not None and
+                     ( man_dist_value < self.current_maneuver.voice_alert_distance + 10 ) ):
+                    voice_to_play = self.voice_engine.get(self.current_maneuver.verbal_alert_full)
+                    self.current_maneuver.verbal_alert_full = None
 
             else: # maneuver changed
-                if self.current_maneuver.verbal_post is not None:
-                    voice_to_play = self.voice_engine.command(self.current_maneuver.verbal_post)
+
+                # post voice should be played only if we are moving
+                # along the road. in this case, new maneuver should be
+                # the next one for the current_maneuver.
+                if ( self.current_maneuver.verbal_post is not None and
+                     self.current_maneuver.node + 1 < len(self.maneuver) and
+                     self.maneuver[self.current_maneuver.node+1].is_same(maneuver) ):
+                    voice_to_play = self.voice_engine.get(self.current_maneuver.verbal_post)
                     self.current_maneuver.verbal_post = None
-                self.current_maneuver = copy.deepcopy(maneuver)
+                self._set_current_maneuver(maneuver)
 
         return dict(total_dist=poor.util.format_distance(max(self.dist)),
                     total_time=poor.util.format_time(max(self.time)),
@@ -338,6 +342,29 @@ class Narrative:
                     reroute=False,
                     voice_to_play=None)
 
+    def _set_current_maneuver(self, maneuver):
+        """Set the current maneuver and request the corresponding voice commands"""
+        self.current_maneuver = copy.deepcopy(maneuver)
+        if not self.voice_engine.active():
+            return
+
+        # request to make voice commands
+        if ( self.current_maneuver.verbal_alert is not None and
+             self.current_maneuver.voice_alert_distance is not None ):
+            time = self.time[maneuver.node]
+
+            self.current_maneuver.verbal_alert_full =  _("In {distance}, {command}").format(
+                distance = poor.util.format_distance(self.current_maneuver.voice_alert_distance,
+                                                     voice=True),
+                command = self.current_maneuver.verbal_alert)
+            self.voice_engine.make(self.current_maneuver.verbal_alert_full)
+
+        if self.current_maneuver.verbal_pre is not None:
+            self.voice_engine.make(self.current_maneuver.verbal_pre)
+
+        if self.current_maneuver.verbal_post:
+            self.voice_engine.make(self.current_maneuver.verbal_post)
+
     def get_maneuvers(self, x, y):
         """Return a list of dictionaries of maneuver details."""
         node = self._get_closest_segment_node(x, y)
@@ -371,6 +398,7 @@ class Narrative:
         (seconds) refers to the leg following the maneuver, other data is
         associated with the maneuver point itself.
         """
+        self.current_maneuver = None
         prev_maneuver = None
         for i in reversed(range(len(maneuvers))):
             if maneuvers[i].get("passive", False): continue
@@ -386,6 +414,9 @@ class Narrative:
                 prev_dist = self.dist[prev_maneuver.node]
                 maneuver.length = self.dist[maneuver.node] - prev_dist
                 speed = maneuver.length / max(1, maneuver.duration) # m/s
+                maneuver.voice_alert_distance = min(maneuver.length,
+                                                    max(self.voice_alert_distance,
+                                                    self.voice_alert_time*speed) )
                 for j in reversed(range(maneuver.node, prev_maneuver.node)):
                     dist = self.dist[j] - self.dist[j+1]
                     self.time[j] = self.time[j+1] + dist/speed
