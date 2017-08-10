@@ -344,7 +344,14 @@ class Narrative:
 
     def _set_current_maneuver(self, maneuver):
         """Set the current maneuver and request the corresponding voice commands"""
+        # check whether voice cache needs to be cleaned using an older
+        # current_maneuver time
+        if self.voice_engine.active() and self.current_maneuver is not None:
+            self.voice_engine.set_time(self.time[self.current_maneuver.node])
+
+        # set current maneuver
         self.current_maneuver = copy.deepcopy(maneuver)
+
         if not self.voice_engine.active():
             return
 
@@ -357,13 +364,13 @@ class Narrative:
                 distance = poor.util.format_distance(self.current_maneuver.voice_alert_distance,
                                                      voice=True),
                 command = self.current_maneuver.verbal_alert)
-            self.voice_engine.make(self.current_maneuver.verbal_alert_full)
+            self.voice_engine.make(self.current_maneuver.verbal_alert_full, time)
 
         if self.current_maneuver.verbal_pre is not None:
-            self.voice_engine.make(self.current_maneuver.verbal_pre)
+            self.voice_engine.make(self.current_maneuver.verbal_pre, time)
 
         if self.current_maneuver.verbal_post:
-            self.voice_engine.make(self.current_maneuver.verbal_post)
+            self.voice_engine.make(self.current_maneuver.verbal_post, time)
 
     def get_maneuvers(self, x, y):
         """Return a list of dictionaries of maneuver details."""

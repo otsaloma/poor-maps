@@ -27,6 +27,18 @@ import queue
 
 import poor.util
 
+##############################################################################
+class Voice:
+    """Helper class to store file name of the voice command and the corresponding time moment"""
+
+    def __init__(self, filename = None, time = None):
+        self.filename = filename
+        self.time = time
+
+##############################################################################
+# Base class for voice engines responsible for converting text to WAV
+# file
+##############################################################################
 class VoiceEngineBase:
 
     """Base class for voice engines. Provides methods that allow to test
@@ -63,9 +75,9 @@ class VoiceEngineBase:
         """Set the voice used for WAV file generation"""
         self.voice_name = self._get_voice_name(language, sex)
 
-#######################################
+##############################################################################
 ### Specific voice engines
-#######################################
+##############################################################################
 #
 # Voice engine has to fill in
 #
@@ -74,7 +86,7 @@ class VoiceEngineBase:
 #
 # and provide make_wav method.
 
-#######################################
+##############################################################################
 class VoiceEngineMimic(VoiceEngineBase):
 
     """Interface to mimic"""
@@ -96,7 +108,7 @@ class VoiceEngineMimic(VoiceEngineBase):
                                 '-o', fname,
                                 '-voice', self.voice_name]) == 0
 
-#######################################
+##############################################################################
 class VoiceEngineFlite(VoiceEngineBase):
 
     """Interface to flite"""
@@ -118,7 +130,7 @@ class VoiceEngineFlite(VoiceEngineBase):
                                 '-o', fname,
                                 '-voice', self.voice_name]) == 0
 
-#######################################
+##############################################################################
 class VoiceEnginePicoTTS(VoiceEngineBase):
 
     """Interface to PicoTTS"""
@@ -145,7 +157,7 @@ class VoiceEnginePicoTTS(VoiceEngineBase):
                                 '-l', self.voice_name,
                                 text]) == 0
 
-#######################################
+##############################################################################
 class VoiceEngineEspeak(VoiceEngineBase):
 
     """Interface to espeak"""
@@ -178,7 +190,8 @@ class VoiceEngineEspeak(VoiceEngineBase):
                                        text], stdout=f) == 0)
         return result
 
-#######################################
+##############################################################################
+# Worker thread run function
 def voice_worker(queue_tasks, queue_results, engine, tmpdir):
     while True:
         cmd = queue_tasks.get()
@@ -190,7 +203,8 @@ def voice_worker(queue_tasks, queue_results, engine, tmpdir):
         queue_results.put( (cmd, fname) )
         queue_tasks.task_done()
 
-
+##############################################################################
+# Interface to available voice engines
 class VoiceCommand:
 
     """Voice command generator"""
@@ -207,7 +221,8 @@ class VoiceCommand:
         self.queue_tasks = None
         self.queue_results = None
         self.cache = {}
-
+        self.last_cache_check_time = 0
+        
     def __del__(self):
         self._clean_worker()
 
@@ -223,19 +238,24 @@ class VoiceCommand:
             self.worker_thread = None
 
     def _clean_cache(self):
-        for cmd, fname in self.cache.items():
-            if fname is not None:
-                os.remove(fname)
+        for cmd, voice in self.cache.items():
+            if voice.filename is not None:
+                os.remove(voice.filename)
         self.cache = {}
 
     def clean(self):
+        """Stop the worker and clean the cache"""
         self._clean_worker()
         self._clean_cache()
-
+        self.last_cache_check_time = 0
+        
     def active(self):
+        """True when TTS engine is selected"""
         return self.engine is not None
 
     def set_voice(self, language, sex = "male"):
+        """Find the engine that matches requested language and, if that engine
+        supports, prefer the requested sex"""
         self.clean()
         if language is None:
             self.engine = None
@@ -247,10 +267,14 @@ class VoiceCommand:
                     return
         self.engine = None
 
-    def make(self, cmd):
+    def make(self, cmd, time):
+        """Request to generate voice for cmd, expected at given time from destination"""
         if self.engine is None:
             return
+        self._update_cache()
         if cmd in self.cache:
+            if self.cache[cmd].time > time:
+                self.cache[cmd].time = time
             return
 
         if self.worker_thread is None:
@@ -263,16 +287,36 @@ class VoiceCommand:
                                                              'tmpdir': self.tmpdir } )
             self.worker_thread.start()
 
+        # add an empty element into cache to ensure that we don't
+        # run the same command twice through the engine
+        self.cache[cmd] = Voice(time=time)
         self.queue_tasks.put(cmd)
 
     def get(self, cmd):
+        """Get the voice for the command"""
         self._update_cache()
-        return self.cache.get(cmd, None)
+        voice = self.cache.get(cmd, None)
+        if voice is not None:
+            return voice.filename
+        return None
 
     def _update_cache(self):
+        """Update the cache"""
         if self.queue_results is None:
             return
         while not self.queue_results.empty():
             cmd, fname = self.queue_results.get_nowait()
             self.queue_results.task_done()
-            self.cache[cmd] = fname
+            self.cache[cmd].filename = fname # time is already set
+
+    def set_time(self, time):
+        """Checks the cache for expiry. Note that the time is relative to destination"""
+        if abs(time - self.last_cache_check_time) < 20:
+            return
+        self.last_cache_check_time = time
+        keys = [k for k, v in self.cache.items() if v.time - time > 60]
+        for k in keys:
+            voice = self.cache[k]
+            if voice.filename is not None:
+                os.remove(voice.filename)
+            del self.cache[k]
