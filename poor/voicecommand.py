@@ -56,7 +56,7 @@ class VoiceEngineBase:
             a = self.languages[language]
             if sex in a:
                 return a[sex]
-            return a[ a.keys[0] ]
+            return next (iter (a.values()))
         return None
 
     def set_voice(self, language, sex = "male"):
@@ -82,8 +82,9 @@ class VoiceEngineMimic(VoiceEngineBase):
     def __init__(self):
         VoiceEngineBase.__init__(self)
         self.languages = {
-            "en": { "male": "ap" },
-            "en-US": { "male": "ap" }
+            "en": { "male": "ap", "female": "slt" },
+            "en-US": { "male": "ap", "female": "slt" },
+            "en-US-x-pirate": { "male": "awb" }
         }
         self.set_command(["mimic", "harbour-mimic"])
 
@@ -118,6 +119,33 @@ class VoiceEngineFlite(VoiceEngineBase):
                                 '-voice', self.voice_name]) == 0
 
 #######################################
+class VoiceEnginePicoTTS(VoiceEngineBase):
+
+    """Interface to PicoTTS"""
+
+    def __init__(self):
+        VoiceEngineBase.__init__(self)
+        self.languages = {
+            "de": { "female": "de-DE" },
+            "en": { "female": "en-US" },
+            "en-GB": { "female": "en-GB" },
+            "en-US": { "female": "en-US" },
+            "en-US-x-pirate": { "female": "en-US" },
+            "es": { "female": "es-ES" },
+            "fr": { "female": "fr-FR" },
+            "it": { "female": "it-IT" }
+        }
+        self.set_command(["pico2wave", "harbour-pico2wave"])
+
+    def make_wav(self, text, fname):
+        """Create a new WAV file specified by fname with the specified text
+        using given language and, if possible, sex"""
+        return subprocess.call([self.command,
+                                '-w', fname,
+                                '-l', self.voice_name,
+                                text]) == 0
+
+#######################################
 class VoiceEngineEspeak(VoiceEngineBase):
 
     """Interface to espeak"""
@@ -132,6 +160,7 @@ class VoiceEngineEspeak(VoiceEngineBase):
             "en-US": { "male": "english-us" },
             "en-US-x-pirate": { "male": "en-scottish" },
             "es": { "male": "spanish" },
+            "fr": { "male": "french" },
             "hi": { "male": "hindi" },
             "it": { "male": "italian" },
             "ru": { "male": "russian_test" },
@@ -170,7 +199,8 @@ class VoiceCommand:
         """Initialize a :class:`VoiceCommand` instance."""
         self.tmpdir = None
         # fill engines in the order of preference
-        self.engines = [ VoiceEngineMimic(), VoiceEngineFlite(), VoiceEngineEspeak() ]
+        self.engines = [ VoiceEngineMimic(), VoiceEngineFlite(),
+                         VoiceEnginePicoTTS(), VoiceEngineEspeak() ]
         self.engine = None
         self.tmpdir = tempfile.mkdtemp(prefix="poor-maps-")
         self.worker_thread = None
