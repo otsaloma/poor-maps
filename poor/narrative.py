@@ -235,6 +235,9 @@ class Narrative:
                     voice_to_play = self.voice_engine.get(self.current_maneuver.verbal_alert_full)
                     self.current_maneuver.verbal_alert_full = None
 
+                else: # not much to do, use for maintenance
+                    self.voice_engine.set_time(self.time[node])
+
             else: # maneuver changed
 
                 # post voice should be played only if we are moving
@@ -344,11 +347,6 @@ class Narrative:
 
     def _set_current_maneuver(self, maneuver):
         """Set the current maneuver and request the corresponding voice commands"""
-        # check whether voice cache needs to be cleaned using an older
-        # current_maneuver time
-        if self.voice_engine.active() and self.current_maneuver is not None:
-            self.voice_engine.set_time(self.time[self.current_maneuver.node])
-
         # set current maneuver
         self.current_maneuver = copy.deepcopy(maneuver)
 
@@ -406,6 +404,7 @@ class Narrative:
         associated with the maneuver point itself.
         """
         self.current_maneuver = None
+        self.voice_engine.clean()
         prev_maneuver = None
         for i in reversed(range(len(maneuvers))):
             if maneuvers[i].get("passive", False): continue
