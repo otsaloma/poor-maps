@@ -292,11 +292,13 @@ class VoiceCommand:
         # run the same command twice through the engine
         self.cache[cmd] = Voice(time=time)
         self.queue_tasks.put(cmd)
+        #print("Request", cmd, time)
 
     def get(self, cmd):
         """Get the voice for the command"""
         self._update_cache()
         voice = self.cache.get(cmd, None)
+        #print("Wanted:", cmd, vars(voice))
         if voice is not None:
             return voice.filename
         return None
@@ -309,6 +311,7 @@ class VoiceCommand:
             cmd, fname = self.queue_results.get_nowait()
             self.queue_results.task_done()
             self.cache[cmd].filename = fname # time is already set
+            #print("Got", cmd)
 
     def set_time(self, time):
         """Checks the cache for expiry. Note that the time is relative to destination"""
@@ -320,4 +323,5 @@ class VoiceCommand:
             voice = self.cache[k]
             if voice.filename is not None:
                 os.remove(voice.filename)
+            #print("Delete", k)
             del self.cache[k]

@@ -45,7 +45,7 @@ class Maneuver:
         self.verbal_alert = None
         self.verbal_pre = None
         self.verbal_post = None
-        self.voice_alert_distance = None # distance at which verbal_alert should be voiced
+        self.verbal_alert_distance = None # distance at which verbal_alert should be voiced
         self.verbal_alert_full = None
         self.node = None
         self.x = None
@@ -227,13 +227,15 @@ class Narrative:
                      ( man_dist_value < self.voice_pre_distance or
                        man_time_value < self.voice_pre_time ) ):
                     voice_to_play = self.voice_engine.get(self.current_maneuver.verbal_pre)
-                    self.current_maneuver.verbal_pre = None
-                    self.current_maneuver.verbal_alert_full = None
+                    if voice_to_play is not None:
+                        self.current_maneuver.verbal_pre = None
+                        self.current_maneuver.verbal_alert_full = None
 
                 elif ( self.current_maneuver.verbal_alert_full is not None and
-                     ( man_dist_value < self.current_maneuver.voice_alert_distance + 10 ) ):
+                     ( man_dist_value < self.current_maneuver.verbal_alert_distance + 10 ) ):
                     voice_to_play = self.voice_engine.get(self.current_maneuver.verbal_alert_full)
-                    self.current_maneuver.verbal_alert_full = None
+                    if voice_to_play is not None:
+                        self.current_maneuver.verbal_alert_full = None
 
                 else: # not much to do, use for maintenance
                     self.voice_engine.set_time(self.time[node])
@@ -247,7 +249,8 @@ class Narrative:
                      self.current_maneuver.node + 1 < len(self.maneuver) and
                      self.maneuver[self.current_maneuver.node+1].is_same(maneuver) ):
                     voice_to_play = self.voice_engine.get(self.current_maneuver.verbal_post)
-                    self.current_maneuver.verbal_post = None
+                    if voice_to_play is not None:
+                        self.current_maneuver.verbal_post = None
                 self._set_current_maneuver(maneuver)
 
         return dict(total_dist=poor.util.format_distance(max(self.dist)),
@@ -356,10 +359,10 @@ class Narrative:
         # request to make voice commands
         time = self.time[maneuver.node]
         if ( self.current_maneuver.verbal_alert is not None and
-             self.current_maneuver.voice_alert_distance is not None ):
+             self.current_maneuver.verbal_alert_distance is not None ):
 
             self.current_maneuver.verbal_alert_full =  _("In {distance}, {command}").format(
-                distance = poor.util.format_distance(self.current_maneuver.voice_alert_distance,
+                distance = poor.util.format_distance(self.current_maneuver.verbal_alert_distance,
                                                      voice=True),
                 command = self.current_maneuver.verbal_alert)
             self.voice_engine.make(self.current_maneuver.verbal_alert_full, time)
@@ -420,9 +423,13 @@ class Narrative:
                 prev_dist = self.dist[prev_maneuver.node]
                 maneuver.length = self.dist[maneuver.node] - prev_dist
                 speed = maneuver.length / max(1, maneuver.duration) # m/s
-                maneuver.voice_alert_distance = min(maneuver.length,
+                maneuver.verbal_alert_distance = min(maneuver.length,
                                                     max(self.voice_alert_distance,
-                                                    self.voice_alert_time*speed) )
+                                                        self.voice_alert_time*speed) )
+                if maneuver.verbal_alert_distance < self.voice_pre_distance:
+                    # no need to alert anymore, too short segment
+                    maneuver.verbal_alert = None
+
                 for j in reversed(range(maneuver.node, prev_maneuver.node)):
                     dist = self.dist[j] - self.dist[j+1]
                     self.time[j] = self.time[j+1] + dist/speed
