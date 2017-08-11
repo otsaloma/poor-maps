@@ -354,9 +354,9 @@ class Narrative:
             return
 
         # request to make voice commands
+        time = self.time[maneuver.node]
         if ( self.current_maneuver.verbal_alert is not None and
              self.current_maneuver.voice_alert_distance is not None ):
-            time = self.time[maneuver.node]
 
             self.current_maneuver.verbal_alert_full =  _("In {distance}, {command}").format(
                 distance = poor.util.format_distance(self.current_maneuver.voice_alert_distance,

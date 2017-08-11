@@ -236,6 +236,7 @@ class VoiceCommand:
             self.queue_tasks.put(None)
             self.worker_thread.join()
             self.worker_thread = None
+            self._update_cache() # to ensure that we have all items
 
     def _clean_cache(self):
         for cmd, voice in self.cache.items():
