@@ -268,7 +268,7 @@ Map {
             map.autoCenter = true;
             map.autoRotate = true;
         });
-        py.call("poor.app.narrative.start", null, null);
+        py.call("poor.app.narrative.begin", null, null);
         app.navigationActive = true;
         app.rerouteConsecutiveErrors = 0;
         app.reroutePreviousTime = -1;
@@ -348,6 +348,7 @@ Map {
         map.autoCenter = false;
         map.autoRotate = false;
         map.zoomLevel > 15 && map.setZoomLevel(15);
+        py.call("poor.app.narrative.end", null, null);
         app.navigationActive = false;
     }
 

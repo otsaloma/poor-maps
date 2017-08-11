@@ -222,7 +222,7 @@ class VoiceCommand:
         self.queue_results = None
         self.cache = {}
         self.last_cache_check_time = 0
-        
+
     def __del__(self):
         self._clean_worker()
 
@@ -249,7 +249,7 @@ class VoiceCommand:
         self._clean_worker()
         self._clean_cache()
         self.last_cache_check_time = 0
-        
+
     def active(self):
         """True when TTS engine is selected"""
         return self.engine is not None

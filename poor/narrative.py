@@ -487,9 +487,10 @@ class Narrative:
         self.x = []
         self.y = []
         self.current_maneuver = None
+        self.navigation_active = False
 
-    def start(self):
-        """Start navigation"""
+    def begin(self):
+        """Begin navigation"""
         self.current_maneuver = None
         self.navigation_active = True
 
