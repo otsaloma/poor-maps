@@ -487,17 +487,18 @@ class Narrative:
         self.x = []
         self.y = []
         self.current_maneuver = None
-        self.navigation_active = False
 
     def begin(self):
         """Begin navigation"""
         self.current_maneuver = None
         self.navigation_active = True
+        #print("Navigation started")
 
     def end(self):
         """End navigation"""
         self.current_maneuver = None
         self.navigation_active = False
+        #print("Navigation stopped")
 
     def quit(self):
         """Cleanup before quiting application"""

@@ -249,6 +249,7 @@ class VoiceCommand:
         self._clean_worker()
         self._clean_cache()
         self.last_cache_check_time = 0
+        #print("Voice engine cleaned")
 
     def active(self):
         """True when TTS engine is selected"""
