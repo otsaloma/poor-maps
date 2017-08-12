@@ -258,6 +258,7 @@ class VoiceCommand:
     def set_voice(self, language, sex = "male"):
         """Find the engine that matches requested language and, if that engine
         supports, prefer the requested sex"""
+        #print("Voice requested:", language, sex)
         self.clean()
         if language is None:
             self.engine = None
