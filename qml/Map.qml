@@ -243,6 +243,7 @@ Map {
         map.route.setPath(route.x, route.y);
         map.route.attribution = route.attribution || "";
         map.route.mode = route.mode || "car";
+        map.route.language = route.language;
         map.route.redraw();
         py.call_sync("poor.app.narrative.set_mode", [route.mode || "car"]);
         if (app.conf.get("voice_commands")) {
@@ -526,6 +527,9 @@ Map {
             maneuver.narrative = map.maneuvers[i].narrative;
             maneuver.duration = map.maneuvers[i].duration;
             maneuver.passive = map.maneuvers[i].passive;
+            maneuver.verbal_alert = map.maneuvers[i].verbal_alert;
+            maneuver.verbal_pre = map.maneuvers[i].verbal_pre;
+            maneuver.verbal_post = map.maneuvers[i].verbal_post;
             data.push(maneuver);
         }
         py.call_sync("poor.storage.write_maneuvers", [data]);
@@ -557,6 +561,7 @@ Map {
             data.y = map.route.path.y;
             data.attribution = map.route.attribution;
             data.mode = map.route.mode;
+            data.language = map.route.language
         } else {
             var data = {};
         }

@@ -45,6 +45,7 @@ Canvas {
     property bool   changed: false
     property bool   hasPath: false
     property string mode: "car"
+    property string language: "en"
     property var    path: {"x": [], "y": []}
     property var    simplePaths: {}
 
