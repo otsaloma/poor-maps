@@ -63,10 +63,60 @@ class Maneuver:
             setattr(self, name, kwargs[name])
         if self.verbal_alert is None: self.verbal_alert = self.narrative
         if self.verbal_pre is None: self.verbal_pre = self.narrative
+        # voice commands: alert and pre parameters
+        self.voice_pre_distance = 50
+        self.voice_pre_time = 5
 
     def is_same(self, maneuver):
         """Check if the maneuver matches self"""
         return ( maneuver.node == self.node )
+
+    def fill_verbal_prompts(self):
+        """Fill voice prompts taking into length, duration of maneuver and the used units"""
+        speed = self.length / max(1, self.duration) # m/s
+        self.verbal_prompts_before = []
+        distance_pre = max( self.voice_pre_distance, self.voice_pre_time*speed )
+        if self.verbal_pre is not None:
+            self.verbal_prompts_before.append( VerbalPrompt(distance = distance_pre,
+                                                                prompt = self.verbal_pre) )
+        if self.verbal_alert is not None:
+            # speed turned out to be relatively unreliable due to the
+            # overestimation of the length. so, we mainly fill by
+            # length and are choosing the correct one in real time
+            dist = []
+            if self.length > 50e3:
+                if poor.conf.units == "american" or poor.conf.units == "british":
+                    dist = [304.8, 914.4, 3218.69]
+                else:
+                    dist = [300, 1000, 3000]
+            elif self.length > 10e3:
+                if poor.conf.units == "american" or poor.conf.units == "british":
+                    dist = [304.8, 914.4]
+                else:
+                    dist = [300, 1000]
+            elif self.length > 1000:
+                if poor.conf.units == "american" or poor.conf.units == "british":
+                    dist = [304.8]
+                else:
+                    dist = [300]
+            elif self.length > 250 and self.length > distance_pre * 2:
+                if poor.conf.units == "american" or poor.conf.units == "british":
+                    dist = [274.32]
+                else:
+                    dist = [250]
+            else:
+                # ignore alert, there is too short distance
+                dist = []
+
+            for d in dist:
+                distance_alert = d
+                prompt = _("In {distance}, {command}").format(
+                    distance = poor.util.format_distance(distance_alert, voice=True),
+                    command = self.verbal_alert)
+
+                self.verbal_prompts_before.append( VerbalPrompt(distance = distance_alert,
+                                                                prompt = prompt) )
+
 
 class Narrative:
 
@@ -86,12 +136,6 @@ class Narrative:
         self.distance_route_too_far_for_direction = 50.0 # [meter] don't auto-rotate when exceeding this distance
         self.distance_route_init_reroute = 200.0 # [meter] when distance from route is exceeded, triggers rerouting calculations
         self.voice_engine = VoiceCommand()
-        # voice commands: alert and pre parameters
-        self.voice_alert_distance = 200
-        self.voice_alert_time = 30
-        self.voice_pre_distance = 50
-        self.voice_pre_time = 5
-
         self.navigation_active = False # True while navigating
 
     def _calculate_direction_ahead(self, node):
@@ -419,27 +463,7 @@ class Narrative:
                 prev_dist = self.dist[prev_maneuver.node]
                 maneuver.length = self.dist[maneuver.node] - prev_dist
                 speed = maneuver.length / max(1, maneuver.duration) # m/s
-
-                ##################################################
-                # voice prompts support
-                maneuver.verbal_prompts_before = []
-
-                if maneuver.verbal_pre is not None:
-                    distance_pre = max( self.voice_pre_distance, self.voice_pre_time*speed )
-                    maneuver.verbal_prompts_before.append( VerbalPrompt(distance = distance_pre,
-                                                                        prompt = maneuver.verbal_pre) )
-                if maneuver.verbal_alert is not None:
-                    distance_alert = min(maneuver.length,
-                                         max(self.voice_alert_distance,
-                                             self.voice_alert_time*speed) )
-                    prompt = _("In {distance}, {command}").format(
-                        distance = poor.util.format_distance(distance_alert, voice=True),
-                        command = maneuver.verbal_alert)
-
-                    maneuver.verbal_prompts_before.append( VerbalPrompt(distance = distance_alert,
-                                                                        prompt = prompt) )
-                # voice prompts: done
-
+                maneuver.fill_verbal_prompts()
                 for j in reversed(range(maneuver.node, prev_maneuver.node)):
                     dist = self.dist[j] - self.dist[j+1]
                     self.time[j] = self.time[j+1] + dist/speed
