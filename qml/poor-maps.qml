@@ -45,7 +45,9 @@ ApplicationWindow {
     property bool navigationActive: false
     property var  navigationBlock: null
     property var  navigationDirection: null
+    property var  navigationPageSeen: false
     property var  navigationStatus: null
+    property bool navigationStarted: false
     property var  northArrow: null
     property var  notification: null
     property int  rerouteConsecutiveErrors: 0
@@ -204,13 +206,36 @@ ApplicationWindow {
         }
     }
 
+    function showNavigationPages() {
+        // Show NavigationPage and NarrativePage.
+        if (!app.pageStack.currentPage ||
+            !app.pageStack.currentPage.partOfNavigationStack) {
+            dummy.updateTiles();
+            app.pageStack.pop(dummy, PageStackAction.Immediate);
+            app.pageStack.push("NavigationPage.qml");
+            app.pageStack.pushAttached("NarrativePage.qml");
+        }
+        // If the narrative page is already active, we don't get the page status
+        // change signal and must request repopulation to scroll the list.
+        var narrativePage = app.pageStack.nextPage(app.pageStack.nextPage(dummy));
+        app.pageStack.currentPage === narrativePage && narrativePage.populate();
+        root.visible = false;
+    }
+
     function showMenu(page, params) {
         // Show a menu page, either given, last viewed, or the main menu.
-        dummy.updateTiles();
         if (page) {
+            dummy.updateTiles();
             app.pageStack.pop(dummy, PageStackAction.Immediate);
             app.pageStack.push(page, params || {});
+        } else if (app.pageStack.currentPage &&
+                   app.pageStack.currentPage.partOfNavigationStack) {
+            // Clear NavigationPage and NarrativePage from the stack.
+            dummy.updateTiles();
+            app.pageStack.pop(dummy, PageStackAction.Immediate);
+            app.pageStack.push("MenuPage.qml");
         } else if (app.pageStack.depth < 2) {
+            dummy.updateTiles();
             app.pageStack.push("MenuPage.qml");
         }
         root.visible = false;

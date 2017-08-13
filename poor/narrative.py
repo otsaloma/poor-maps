@@ -246,6 +246,7 @@ class Narrative:
         seg_dist = min(seg_dists)
         dest_dist, dest_time = self._get_display_destination(
             x, y, node, seg_dist)
+        progress  = (max(self.time) - dest_time) / max(self.time)
         dest_dist = poor.util.format_distance(dest_dist)
         dest_time = poor.util.format_time(dest_time)
         man = self._get_display_maneuver(x, y, node, seg_dists)
@@ -308,6 +309,7 @@ class Narrative:
                     dest_time=dest_time,
                     man_dist=man_dist,
                     man_time=man_time,
+                    progress=progress,
                     icon=icon,
                     narrative=narrative,
                     direction=direction,
@@ -355,9 +357,10 @@ class Narrative:
         seg_dist = self._get_distance_from_route(x, y, node)
         dest_dist, dest_time = self._get_display_destination(
             x, y, node, seg_dist)
+        progress  = (max(self.time) - dest_time) / max(self.time)
         dest_dist = poor.util.format_distance(dest_dist)
         dest_time = poor.util.format_time(dest_time)
-        man_node = self._get_closest_maneuver_node(x, y, node)
+        man_node  = self._get_closest_maneuver_node(x, y, node)
         if man_node > node + 1:
             # If the maneuver point is far and still ahead, we can calculate
             # distances and times from along the route, just as for cars.
@@ -391,6 +394,7 @@ class Narrative:
                     dest_time=dest_time,
                     man_dist=man_dist,
                     man_time=man_time,
+                    progress=progress,
                     icon=icon,
                     narrative=narrative,
                     direction=direction,
