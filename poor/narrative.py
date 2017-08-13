@@ -405,13 +405,22 @@ class Narrative:
         if not self.voice_engine.active():
             return
 
-        # request to make voice commands
-        time = self.time[maneuver.node]
-        for p in self.current_maneuver.verbal_prompts_before:
-            self.voice_engine.make(p.prompt, time)
+        # request to make voice commands for current and
+        # few future maneuvers
+        node = maneuver.node
+        for i in range(3):
+            time = self.time[node]
+            man = self.maneuver[node]
+            for p in man.verbal_prompts_before:
+                self.voice_engine.make(p.prompt, time)
 
-        if self.current_maneuver.verbal_post:
-            self.voice_engine.make(self.current_maneuver.verbal_post, time)
+            if man.verbal_post:
+                self.voice_engine.make(man.verbal_post, time)
+
+            if len(self.maneuver) > node+1:
+                node = self.maneuver[node+1].node
+            else:
+                break
 
     def get_maneuvers(self, x, y):
         """Return a list of dictionaries of maneuver details."""
@@ -526,6 +535,7 @@ class Narrative:
         """Begin navigation"""
         self.current_maneuver = None
         self.navigation_active = True
+        self. _set_current_maneuver(self.maneuver[0])
         #print("Navigation started")
 
     def end(self):
