@@ -19,17 +19,22 @@
 
 import bisect
 import copy
-import os
 import poor
-import shutil
 import statistics
-import subprocess
-import tempfile
 
 from poor.i18n import _
 from poor.voicecommand import VoiceCommand
 
 __all__ = ("Narrative",)
+
+
+class VerbalPrompt:
+
+    """Verbal prompt before a routing maneuver"""
+
+    def __init__(self, distance, prompt):
+        self.distance = distance
+        self.prompt = prompt
 
 
 class Maneuver:
@@ -45,7 +50,11 @@ class Maneuver:
         self.verbal_alert = None
         self.verbal_pre = None
         self.verbal_post = None
-        self.verbal_alert_distance = None # distance at which verbal_alert should be voiced
+        self.verbal_prompts_before = [] # verbal alerts and _pre
+                                        # prompt arranged into a
+                                        # list. The prompts are sorted
+                                        # by the distance from the
+                                        # maneuver
         self.verbal_alert_full = None
         self.node = None
         self.x = None
@@ -223,19 +232,15 @@ class Narrative:
 
             elif self.current_maneuver.is_same(maneuver):
 
-                if ( self.current_maneuver.verbal_pre is not None and
-                     ( man_dist_value < self.voice_pre_distance or
-                       man_time_value < self.voice_pre_time ) ):
-                    voice_to_play = self.voice_engine.get(self.current_maneuver.verbal_pre)
-                    if voice_to_play is not None:
-                        self.current_maneuver.verbal_pre = None
-                        self.current_maneuver.verbal_alert_full = None
-
-                elif ( self.current_maneuver.verbal_alert_full is not None and
-                     ( man_dist_value < self.current_maneuver.verbal_alert_distance + 10 ) ):
-                    voice_to_play = self.voice_engine.get(self.current_maneuver.verbal_alert_full)
-                    if voice_to_play is not None:
-                        self.current_maneuver.verbal_alert_full = None
+                for i in range(len(self.current_maneuver.verbal_prompts_before)):
+                    p = self.current_maneuver.verbal_prompts_before[i]
+                    if man_dist_value < p.distance + 10: # use 10 meters as a tolerance
+                        voice_to_play = self.voice_engine.get(p.prompt)
+                        if voice_to_play is not None:
+                            # drop the played prompt and all that were
+                            # supposed to be played before
+                            self.current_maneuver.verbal_prompts_before = self.current_maneuver.verbal_prompts_before[:i]
+                        break
 
                 else: # not much to do, use for maintenance
                     self.voice_engine.set_time(self.time[node])
@@ -358,17 +363,8 @@ class Narrative:
 
         # request to make voice commands
         time = self.time[maneuver.node]
-        if ( self.current_maneuver.verbal_alert is not None and
-             self.current_maneuver.verbal_alert_distance is not None ):
-
-            self.current_maneuver.verbal_alert_full =  _("In {distance}, {command}").format(
-                distance = poor.util.format_distance(self.current_maneuver.verbal_alert_distance,
-                                                     voice=True),
-                command = self.current_maneuver.verbal_alert)
-            self.voice_engine.make(self.current_maneuver.verbal_alert_full, time)
-
-        if self.current_maneuver.verbal_pre is not None:
-            self.voice_engine.make(self.current_maneuver.verbal_pre, time)
+        for p in self.current_maneuver.verbal_prompts_before:
+            self.voice_engine.make(p.prompt, time)
 
         if self.current_maneuver.verbal_post:
             self.voice_engine.make(self.current_maneuver.verbal_post, time)
@@ -423,12 +419,26 @@ class Narrative:
                 prev_dist = self.dist[prev_maneuver.node]
                 maneuver.length = self.dist[maneuver.node] - prev_dist
                 speed = maneuver.length / max(1, maneuver.duration) # m/s
-                maneuver.verbal_alert_distance = min(maneuver.length,
-                                                    max(self.voice_alert_distance,
-                                                        self.voice_alert_time*speed) )
-                if maneuver.verbal_alert_distance < self.voice_pre_distance:
-                    # no need to alert anymore, too short segment
-                    maneuver.verbal_alert = None
+
+                ##################################################
+                # voice prompts support
+                maneuver.verbal_prompts_before = []
+
+                if maneuver.verbal_pre is not None:
+                    distance_pre = max( self.voice_pre_distance, self.voice_pre_time*speed )
+                    maneuver.verbal_prompts_before.append( VerbalPrompt(distance = distance_pre,
+                                                                        prompt = maneuver.verbal_pre) )
+                if maneuver.verbal_alert is not None:
+                    distance_alert = min(maneuver.length,
+                                         max(self.voice_alert_distance,
+                                             self.voice_alert_time*speed) )
+                    prompt = _("In {distance}, {command}").format(
+                        distance = poor.util.format_distance(distance_alert, voice=True),
+                        command = maneuver.verbal_alert)
+
+                    maneuver.verbal_prompts_before.append( VerbalPrompt(distance = distance_alert,
+                                                                        prompt = prompt) )
+                # voice prompts: done
 
                 for j in reversed(range(maneuver.node, prev_maneuver.node)):
                     dist = self.dist[j] - self.dist[j+1]
