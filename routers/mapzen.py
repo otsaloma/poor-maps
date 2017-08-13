@@ -27,7 +27,10 @@ import json
 import poor
 import urllib.parse
 
-CONF_DEFAULTS = {"type": "auto"}
+CONF_DEFAULTS = {
+    "type": "auto",
+    "language": poor.util.get_default_language()
+}
 
 ICONS = {
      0: "flag",
@@ -85,13 +88,13 @@ def route(fm, to, heading, params):
     fm, to = map(prepare_endpoint, (fm, to))
     if heading is not None:
         fm["heading"] = heading
-    lang = poor.util.get_default_language("en")
     if poor.conf.units == "american": units = "miles"
     elif poor.conf.units == "british": units = "miles"
     else: units = "kilometers"
     input = dict(locations=[fm, to],
                  costing=poor.conf.routers.mapzen.type,
-                 directions_options=dict(language=lang, units=units))
+                 directions_options=dict(language=poor.conf.routers.mapzen.language,
+                                         units=units))
 
     input = urllib.parse.quote(json.dumps(input))
     url = URL.format(**locals())
@@ -113,6 +116,7 @@ def route(fm, to, heading, params):
     ) for maneuver in legs.maneuvers]
     route = dict(x=x, y=y, maneuvers=maneuvers)
     route["attribution"] = poor.util.get_routing_attribution("Mapzen")
+    route["language"] = result.trip.language
     if route and route["x"]:
         cache[url] = copy.deepcopy(route)
     return route

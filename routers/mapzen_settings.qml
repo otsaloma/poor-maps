@@ -40,4 +40,32 @@ Column {
         }
     }
 
+    ComboBox {
+        id: langComboBox
+        label: app.tr("Language")
+        menu: ContextMenu {
+            MenuItem { text: app.tr("Catalan") }
+            MenuItem { text: app.tr("Czech") }
+            MenuItem { text: app.tr("German") }
+            MenuItem { text: app.tr("English (US)") }
+            MenuItem { text: app.tr("English Pirate") }
+            MenuItem { text: app.tr("Spanish") }
+            MenuItem { text: app.tr("Hindi") }
+            MenuItem { text: app.tr("Italian") }
+            MenuItem { text: app.tr("Russian") }
+            MenuItem { text: app.tr("Slovenian") }
+            MenuItem { text: app.tr("Swedish") }
+        }
+        property var keys: ["ca", "cs", "de", "en", "en-US-x-pirate", "es", "hi", "it", "ru", "sl", "sv"]
+        Component.onCompleted: {
+            var key = app.conf.get("routers.mapzen.language");
+            var ind = langComboBox.keys.indexOf(key);
+            if (ind < 0) ind = 3; // English (US)
+            langComboBox.currentIndex = ind;
+        }
+        onCurrentIndexChanged: {
+            var option = "routers.mapzen.language";
+            app.conf.set(option, langComboBox.keys[langComboBox.currentIndex]);
+        }
+    }
 }
