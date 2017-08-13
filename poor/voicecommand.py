@@ -317,10 +317,10 @@ class VoiceCommand:
 
     def set_time(self, time):
         """Checks the cache for expiry. Note that the time is relative to destination"""
-        if abs(time - self.last_cache_check_time) < 20:
+        if abs(time - self.last_cache_check_time) < 600:
             return
         self.last_cache_check_time = time
-        keys = [k for k, v in self.cache.items() if v.time - time > 60]
+        keys = [k for k, v in self.cache.items() if v.time - time > 600]
         for k in keys:
             voice = self.cache[k]
             if voice.filename is not None:
