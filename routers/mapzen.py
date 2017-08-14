@@ -114,7 +114,7 @@ def route(fm, to, heading, params):
         verbal_post=maneuver.get("verbal_post_transition_instruction", None),
         duration=float(maneuver.time),
     ) for maneuver in legs.maneuvers]
-    route = dict(x=x, y=y, maneuvers=maneuvers)
+    route = dict(x=x, y=y, maneuvers=maneuvers, mode="car")
     route["attribution"] = poor.util.get_routing_attribution("Mapzen")
     route["language"] = result.trip.language
     if route and route["x"]:
