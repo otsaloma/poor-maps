@@ -35,7 +35,6 @@ class VerbalPrompt:
     def __init__(self, distance, prompt):
         self.distance = distance
         self.prompt = prompt
-        print(distance, prompt)
 
 class Maneuver:
 
