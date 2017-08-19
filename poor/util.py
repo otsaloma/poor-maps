@@ -285,6 +285,22 @@ def format_time(seconds):
         return _("{:d} min").format(minutes)
     return _("{:d} h {:d} min").format(hours, minutes)
 
+def round_distance(distance):
+    """Round distance taking into account used units and return it in meters"""
+    mile = 1609.34
+    yard = 0.9144
+    foot = yard / 3
+    if distance >= mile and (poor.conf.units == "american" or poor.conf.units == "british"):
+        return round(distance / mile, 1) * mile
+    elif poor.conf.units == "american":
+        return round(distance / foot / 100) * foot * 100
+    elif poor.conf.units == "british":
+        return round(distance / yard / 50) * yard * 50
+    # metric case left
+    elif distance > 1000:
+        return round(distance / 1e3, 1) * 1e3
+    return round(distance / 50) * 50
+
 def get_basemaps():
     """Return a list of dictionaries of basemap attributes."""
     return list(filter(lambda x: x.get("type", "basemap") == "basemap",

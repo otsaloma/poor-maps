@@ -35,7 +35,7 @@ class VerbalPrompt:
     def __init__(self, distance, prompt):
         self.distance = distance
         self.prompt = prompt
-
+        print(distance, prompt)
 
 class Maneuver:
 
@@ -72,7 +72,7 @@ class Maneuver:
 
     def fill_verbal_prompts(self, length, duration):
         """Fill voice prompts taking into account length, duration of the leg before
-        the maneuver and the used units"""        
+        the maneuver and the used units"""
         speed = length / max(1, duration) # m/s
         self.verbal_prompts_before = []
         distance_pre = max( self.voice_pre_distance, self.voice_pre_time*speed )
@@ -80,33 +80,19 @@ class Maneuver:
             self.verbal_prompts_before.append( VerbalPrompt(distance = distance_pre,
                                                             prompt = self.verbal_pre) )
         if self.verbal_alert is not None:
-            dist = []
-            if length > 50e3:
-                if poor.conf.units == "american" or poor.conf.units == "british":
-                    dist = [304.8, 914.4, 3218.69]
-                else:
-                    dist = [300, 1000, 3000]
-            elif length > 10e3:
-                if poor.conf.units == "american" or poor.conf.units == "british":
-                    dist = [304.8, 914.4]
-                else:
-                    dist = [300, 1000]
-            elif length > 1000:
-                if poor.conf.units == "american" or poor.conf.units == "british":
-                    dist = [304.8]
-                else:
-                    dist = [300]
-            elif length > 250 and length > distance_pre * 2:
-                if poor.conf.units == "american" or poor.conf.units == "british":
-                    dist = [274.32]
-                else:
-                    dist = [250]
+            times = []
+            if duration > 1800:
+                times = [ 30, 90 ]
+            elif duration > 600:
+                times = [ 35 ]
+            elif duration > 60:
+                times = [ 20 ]
             else:
                 # ignore alert, there is too short distance
                 dist = []
 
-            for d in dist:
-                distance_alert = d
+            for t in times:
+                distance_alert = poor.util.round_distance( t * speed )
                 prompt = _("In {distance}, {command}").format(
                     distance = poor.util.format_distance(distance_alert, voice=True),
                                                          command = self.verbal_alert)
@@ -481,25 +467,25 @@ class Narrative:
 
         # walk through all maneuvers and fill the voice
         # instructions. Here, the length of the leg before maneuver is
-        # required. 
+        # required.
         node = 0
         prev_node = 0
         while True:
             maneuver = self.maneuver[node]
             if node > 1:
                 length = self.dist[prev_node] - self.dist[node]
-                duration = self.time[prev_node] - self.time[node]                
+                duration = self.time[prev_node] - self.time[node]
                 maneuver.fill_verbal_prompts(length = length, duration = duration)
             else:
                 # the first node
                 maneuver.fill_verbal_prompts(length = 0, duration = 0)
-                
+
             if node + 1 < len(self.maneuver):
                 prev_node = node
                 node = self.maneuver[node+1].node
             else:
                 break
-                
+
 
     def set_mode(self, mode):
         """
