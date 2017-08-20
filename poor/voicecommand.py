@@ -17,8 +17,10 @@
 
 """Voice command support"""
 
+import copy
 import os
 import poor
+import re
 import shutil
 import subprocess
 import tempfile
@@ -75,6 +77,31 @@ class VoiceEngineBase:
         """Set the voice used for WAV file generation"""
         self.voice_name = self._get_voice_name(language, sex)
 
+
+##############################################################################
+# Base class for voice engines that process some words in en-US-x-pirate and
+# replace them with SSML phonemes
+##############################################################################
+class VoiceEngineEnUsPirate(VoiceEngineBase):
+
+    """Base class used by mimic and flite-based voice engines for en-US-x-pirate locale"""
+
+    def __init__(self):
+        self.phonemes = { "Arrr": "aa r ah0 r r .",
+                          "Cap'n": "k ae1 p n",
+                          "head'n": "hh eh1 d ah0 n",
+                          "th'": "dh" }
+
+    def process_text(self, text):
+        # preprocess to catch few words in Pirate's dictionary
+        for word, ph in self.phonemes.items():
+            if word == "th'":
+                text = text.replace(" %s " % word, ' <phoneme ph="%s">phonemes-given</phoneme> ' % ph)
+            else:
+                text = re.sub(r"\b%s\b" % word, '<phoneme ph="%s">phonemes-given</phoneme>' % ph, text)
+        return text        
+
+
 ##############################################################################
 ### Specific voice engines
 ##############################################################################
@@ -96,7 +123,6 @@ class VoiceEngineMimic(VoiceEngineBase):
         self.languages = {
             "en": { "male": "ap", "female": "slt" },
             "en-US": { "male": "ap", "female": "slt" },
-            "en-US-x-pirate": { "male": "awb" }
         }
         self.set_command(["mimic", "harbour-mimic"])
 
@@ -104,6 +130,29 @@ class VoiceEngineMimic(VoiceEngineBase):
         """Create a new WAV file specified by fname with the specified text
         using given language and, if possible, sex"""
         return subprocess.call([self.command,
+                                '-t', text,
+                                '-o', fname,
+                                '-voice', self.voice_name]) == 0
+
+class VoiceEngineMimicEnUsPirate(VoiceEngineEnUsPirate):
+
+    """Interface to mimic using SSML for tricky pronunciations for en-US-x-pirate locale"""
+
+    def __init__(self):
+        VoiceEngineBase.__init__(self)
+        VoiceEngineEnUsPirate.__init__(self)
+        self.languages = {
+            # don't use ap voice since it has issues with SSML phoneme
+            "en-US-x-pirate": { "male": "awb", "female": "slt" }
+        }
+        self.set_command(["mimic", "harbour-mimic"])
+
+    def make_wav(self, text, fname):
+        """Create a new WAV file specified by fname with the specified text
+        using given language and, if possible, sex"""
+        text = self.process_text(text)
+        return subprocess.call([self.command,
+                                '-ssml',
                                 '-t', text,
                                 '-o', fname,
                                 '-voice', self.voice_name]) == 0
@@ -118,7 +167,6 @@ class VoiceEngineFlite(VoiceEngineBase):
         self.languages = {
             "en": { "male": "kal16", "female": "slt" },
             "en-US": { "male": "kal16", "female": "slt" },
-            "en-US-x-pirate": { "male": "awb" }
         }
         self.set_command(["flite", "harbour-flite"])
 
@@ -126,6 +174,29 @@ class VoiceEngineFlite(VoiceEngineBase):
         """Create a new WAV file specified by fname with the specified text
         using given language and, if possible, sex"""
         return subprocess.call([self.command,
+                                '-t', text,
+                                '-o', fname,
+                                '-voice', self.voice_name]) == 0
+
+class VoiceEngineFliteEnUsPirate(VoiceEngineEnUsPirate):
+
+    """Interface to flite using SSML for tricky pronunciations for en-US-x-pirate locale"""
+
+    def __init__(self):
+        VoiceEngineBase.__init__(self)
+        VoiceEngineEnUsPirate.__init__(self)
+        self.languages = {
+            # don't use ap voice since it has issues with SSML phoneme
+            "en-US-x-pirate": { "male": "awb", "female": "slt" }
+        }
+        self.set_command(["flite", "harbour-flite"])
+
+    def make_wav(self, text, fname):
+        """Create a new WAV file specified by fname with the specified text
+        using given language and, if possible, sex"""
+        text = self.process_text(text)
+        return subprocess.call([self.command,
+                                '-ssml',
                                 '-t', text,
                                 '-o', fname,
                                 '-voice', self.voice_name]) == 0
@@ -213,7 +284,8 @@ class VoiceCommand:
         """Initialize a :class:`VoiceCommand` instance."""
         self.tmpdir = None
         # fill engines in the order of preference
-        self.engines = [ VoiceEngineMimic(), VoiceEngineFlite(),
+        self.engines = [ VoiceEngineMimic(), VoiceEngineMimicEnUsPirate(),
+                         VoiceEngineFlite(), VoiceEngineFliteEnUsPirate(),
                          VoiceEnginePicoTTS(), VoiceEngineEspeak() ]
         self.engine = None
         self.tmpdir = tempfile.mkdtemp(prefix="poor-maps-")
