@@ -50,7 +50,7 @@ Python {
         } else if (obj === null || obj === undefined) {
             return "None";
         } else if (typeof obj === "string") {
-            return "'%1'".arg(obj.replace(new RegExp("'", 'g'), "\\'"));
+            return "'%1'".arg(obj.replace(/'/g, "\\'"));
         } else if (typeof obj === "number") {
             return obj.toString();
         } else if (typeof obj === "boolean") {
