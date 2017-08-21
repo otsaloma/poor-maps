@@ -114,6 +114,16 @@ pot:
 
 	xgettext \
 	 --output=$(POT_FILE) \
+	 --language=Python \
+	 --from-code=UTF-8 \
+	 --join-existing \
+	 --keyword=__ \
+	 --add-comments=TRANSLATORS: \
+	 --no-wrap \
+	 */*.py
+
+	xgettext \
+	 --output=$(POT_FILE) \
 	 --language=JavaScript \
 	 --from-code=UTF-8 \
 	 --join-existing \

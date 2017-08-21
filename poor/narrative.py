@@ -23,6 +23,7 @@ import poor
 import statistics
 
 from poor.i18n import _
+from poor.i18n import __
 from poor.voicecommand import VoiceCommand
 
 __all__ = ("Narrative",)
@@ -69,7 +70,7 @@ class Maneuver:
         """Check if the maneuver matches self"""
         return ( maneuver.node == self.node )
 
-    def fill_verbal_prompts(self, length, duration):
+    def fill_verbal_prompts(self, length, duration, language):
         """Fill voice prompts taking into account length, duration of the leg before
         the maneuver and the used units"""
         speed = length / max(1, duration) # m/s
@@ -92,9 +93,9 @@ class Maneuver:
 
             for t in times:
                 distance_alert = poor.util.round_distance( t * speed )
-                prompt = _("In {distance}, {command}").format(
+                prompt = __("In {distance}, {command}", language).format(
                     distance = poor.util.format_distance(distance_alert, voice=True),
-                                                         command = self.verbal_alert)
+                    command = self.verbal_alert)
 
                 self.verbal_prompts_before.append( VerbalPrompt(distance = distance_alert,
                                                                 prompt = prompt) )
@@ -119,6 +120,7 @@ class Narrative:
         self.distance_route_init_reroute = 200.0 # [meter] when distance from route is exceeded, triggers rerouting calculations
         self.voice_engine = VoiceCommand()
         self.navigation_active = False # True while navigating
+        self.language = "en" # language used for routing instructions
 
     def _calculate_direction_ahead(self, node):
         """Return direction of the segment from `node` ahead."""
@@ -474,10 +476,12 @@ class Narrative:
             if node > 1:
                 length = self.dist[prev_node] - self.dist[node]
                 duration = self.time[prev_node] - self.time[node]
-                maneuver.fill_verbal_prompts(length = length, duration = duration)
+                maneuver.fill_verbal_prompts(length = length,
+                                             duration = duration,
+                                             language = self.language )
             else:
                 # the first node
-                maneuver.fill_verbal_prompts(length = 0, duration = 0)
+                maneuver.fill_verbal_prompts(length=0, duration=0, language=self.language)
 
             if node + 1 < len(self.maneuver):
                 prev_node = node
@@ -499,6 +503,7 @@ class Narrative:
 
     def set_voice(self, language, sex = "male"):
         """Set voice commands mode"""
+        self.language = language
         self.voice_engine.set_voice(language, sex)
 
     def set_route(self, x, y):

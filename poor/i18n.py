@@ -30,3 +30,19 @@ _translation = gettext.translation(
 def _(message):
     """Return the localized translation of `message`."""
     return _translation.gettext(message)
+
+def __(message, language):
+    """Return the translation of `message` to `language`. Note that the same
+    notation is used for languages, as in the voicecommand module"""
+    # exceptions
+    l = {
+        "de": "de_DE",
+        "en": "en_US",
+        "en-US": "en_US",
+        "en-US-x-pirate": "en_US",
+        "es": "es_ES",
+        }
+    return gettext.translation( "poor-maps",
+                                localedir=poor.LOCALE_DIR,
+                                languages=l.get(language, language),
+                                fallback=True ).gettext(message)
