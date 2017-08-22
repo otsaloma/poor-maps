@@ -46,7 +46,7 @@ ApplicationWindow {
     property var  navigationBlock: null
     property var  navigationDirection: null
     property var  navigationPageSeen: false
-    property var  navigationStatus: null
+    property var  navigationStatus: NavigationStatus {}
     property bool navigationStarted: false
     property var  northArrow: null
     property var  notification: null
@@ -58,6 +58,12 @@ ApplicationWindow {
     property var  scaleBar: null
     property int  screenHeight: Screen.height
     property int  screenWidth: Screen.width
+    property var  showNarrative: null
+
+    // Default vertical margin for various multiline list items
+    // such that it would be consistent with single-line list items
+    // and the associated constant Theme.itemSizeSmall.
+    property real listItemVerticalMargin: (Theme.itemSizeSmall - 1.125 * Theme.fontSizeMedium) / 2
 
     Root { id: root }
     PositionSource { id: gps }
@@ -140,13 +146,7 @@ ApplicationWindow {
                 app.rerouteConsecutiveErrors++;
             } else if (route && route.x && route.x.length > 0) {
                 app.notification.flash(app.tr("New route found"));
-                map.addRoute({
-                    "x": route.x,
-                    "y": route.y,
-                    "mode": route.mode || "car",
-                    "attribution": route.attribution || "",
-                    "language": route.language
-                }, true);
+                map.addRoute(route, true);
                 map.addManeuvers(route.maneuvers);
                 app.rerouteConsecutiveErrors = 0;
             } else {
@@ -177,32 +177,6 @@ ApplicationWindow {
             var interval = 5000 * Math.pow(2, Math.min(4, app.rerouteConsecutiveErrors));
             if (Date.now() - app.reroutePreviousTime < interval) return;
             return app.reroute();
-        }
-    }
-
-    function setNavigationStatus(status) {
-        // Set values of labels in the navigation status area.
-        if (status && map.showNarrative) {
-            app.navigationBlock.destDist  = status.dest_dist || "";
-            app.navigationBlock.destTime  = status.dest_time || "";
-            app.navigationBlock.icon      = status.icon      || "";
-            app.navigationBlock.manDist   = status.man_dist  || "";
-            app.navigationBlock.manTime   = status.man_time  || "";
-            app.navigationBlock.narrative = status.narrative || "";
-            app.navigationDirection       = status.direction || null;
-        } else {
-            app.navigationBlock.destDist  = "";
-            app.navigationBlock.destTime  = "";
-            app.navigationBlock.icon      = "";
-            app.navigationBlock.manDist   = "";
-            app.navigationBlock.manTime   = "";
-            app.navigationBlock.narrative = "";
-            app.navigationDirection       = null;
-        }
-        app.navigationStatus = status;
-        status && status.reroute && app.rerouteMaybe();
-        if (status && status.voice_to_play) {
-            sound.source = "file://" + status.voice_to_play
         }
     }
 
@@ -256,6 +230,18 @@ ApplicationWindow {
         var prevent = app.conf.get("keep_alive");
         DisplayBlanking.preventBlanking = app.applicationActive &&
             (prevent === "always" || (prevent === "navigating" && map.hasRoute));
+    }
+
+    function updateNavigationStatus(status) {
+        // Update navigation status with data from Python backend.
+        if (app.showNarrative === null)
+            app.showNarrative = app.conf.get("show_narrative");
+        app.navigationStatus.update(status);
+        app.navigationStatus.reroute && app.rerouteMaybe();
+        // voice is used only here by setting corresponding sound source
+        if (status && status.voice_to_play) {
+            sound.source = "file://" + status.voice_to_play
+        }        
     }
 
 }

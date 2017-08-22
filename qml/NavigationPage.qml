@@ -116,10 +116,7 @@ Page {
                     color: Theme.highlightColor
                     height: Theme.paddingSmall
                     radius: height / 2
-                    width: (app.navigationStatus &&
-                            app.navigationStatus.progress ||
-                            0) * progressTotal.width
-
+                    width: app.navigationStatus.progress * progressTotal.width
                 }
             }
 
@@ -127,48 +124,80 @@ Page {
                 height: Theme.paddingLarge + Theme.paddingSmall
             }
 
-            Item {
+            Row {
+                // Distance and time remaining
                 anchors.left: parent.left
+                anchors.leftMargin: Theme.horizontalPageMargin
                 anchors.right: parent.right
+                anchors.rightMargin: Theme.horizontalPageMargin
                 height: Theme.itemSizeExtraSmall
-                ListItemLabel {
-                    font.pixelSize: Theme.fontSizeSmall
+                Label {
+                    id: remaining1
                     height: Theme.itemSizeExtraSmall
-                    text: app.navigationStatus ? app.tr("%1 remaining")
-                        .arg(app.navigationStatus.dest_dist || "?") : ""
+                    text: app.tr("Remaining")
+                    truncationMode: TruncationMode.Fade
+                    verticalAlignment: Text.AlignVCenter
+                    width: parent.width / 3
                 }
-                ListItemLabel {
-                    color: Theme.secondaryColor
-                    font.pixelSize: Theme.fontSizeSmall
-                    height: Theme.itemSizeExtraSmall
+                Label {
+                    anchors.baseline: remaining1.baseline
                     horizontalAlignment: Text.AlignRight
-                    text: app.navigationStatus ? app.tr("total %1")
-                        .arg(app.navigationStatus.total_dist || "?") : ""
+                    text: app.navigationStatus.destDist
+                    truncationMode: TruncationMode.Fade
+                    width: parent.width / 3
+                }
+                Label {
+                    anchors.baseline: remaining1.baseline
+                    horizontalAlignment: Text.AlignRight
+                    text: app.navigationStatus.destTime
+                    truncationMode: TruncationMode.Fade
+                    width: parent.width / 3
                 }
             }
 
-            Item {
+            Row {
+                // Total distance and time
                 anchors.left: parent.left
+                anchors.leftMargin: Theme.horizontalPageMargin
                 anchors.right: parent.right
+                anchors.rightMargin: Theme.horizontalPageMargin
                 height: Theme.itemSizeExtraSmall
-                ListItemLabel {
-                    font.pixelSize: Theme.fontSizeSmall
+                Label {
+                    id: total1
                     height: Theme.itemSizeExtraSmall
-                    text: app.navigationStatus ? app.tr("%1 remaining")
-                        .arg(app.navigationStatus.dest_time || "?") : ""
+                    text: app.tr("Total")
+                    truncationMode: TruncationMode.Fade
+                    verticalAlignment: Text.AlignVCenter
+                    width: parent.width / 3
                 }
-                ListItemLabel {
-                    color: Theme.secondaryColor
-                    font.pixelSize: Theme.fontSizeSmall
-                    height: Theme.itemSizeExtraSmall
+                Label {
+                    anchors.baseline: total1.baseline
                     horizontalAlignment: Text.AlignRight
-                    text: app.navigationStatus ? app.tr("total %1")
-                        .arg(app.navigationStatus.total_time || "?") : ""
+                    text: app.navigationStatus.totalDist
+                    truncationMode: TruncationMode.Fade
+                    width: parent.width / 3
+                }
+                Label {
+                    anchors.baseline: total1.baseline
+                    horizontalAlignment: Text.AlignRight
+                    text: app.navigationStatus.totalTime
+                    truncationMode: TruncationMode.Fade
+                    width: parent.width / 3
                 }
             }
 
             SectionHeader {
                 text: app.tr("Options")
+            }
+
+            TextSwitch {
+                id: showNarrativeSwitch
+                checked: app.conf.get("show_narrative")
+                text: app.tr("Show navigation instructions")
+                onCheckedChanged: {
+                    app.conf.set("show_narrative", showNarrativeSwitch.checked);
+                    app.showNarrative = showNarrativeSwitch.checked;
+                }
             }
 
             TextSwitch {

@@ -34,17 +34,25 @@ Dialog {
 
         delegate: ListItem {
             id: listItem
-            contentHeight: nameLabel.height + descriptionLabel.anchors.topMargin +
-                descriptionLabel.height + attributionLabel.height
+            contentHeight: defaultHeader.height + nameLabel.height +
+                descriptionLabel.anchors.topMargin + descriptionLabel.height +
+                attributionLabel.height + alternativesHeader.height
+
+            SectionHeader {
+                id: defaultHeader
+                height: model.default ? implicitHeight : 0
+                text: app.tr("Default")
+                visible: model.default && !listItem.highlighted
+            }
 
             ListItemLabel {
                 id: nameLabel
+                anchors.top: defaultHeader.bottom
                 color: (model.active || listItem.highlighted) ?
                     Theme.highlightColor : Theme.primaryColor;
-                height: implicitHeight + topMargin
+                height: implicitHeight + app.listItemVerticalMargin
                 text: model.name
                 verticalAlignment: Text.AlignBottom
-                property real topMargin: (Theme.itemSizeSmall - implicitHeight) / 2
             }
 
             ListItemLabel {
@@ -53,6 +61,7 @@ Dialog {
                 anchors.topMargin: Theme.paddingSmall
                 color: Theme.secondaryColor
                 font.pixelSize: Theme.fontSizeExtraSmall
+                lineHeight: 1.15
                 text: model.description + "\n" + app.tr("Modes: %1", model.modes)
                 verticalAlignment: Text.AlignTop
                 wrapMode: Text.WordWrap
@@ -63,12 +72,21 @@ Dialog {
                 anchors.top: descriptionLabel.bottom
                 color: Theme.secondaryColor
                 font.pixelSize: Theme.fontSizeExtraSmall
-                height: (visible ? implicitHeight : 0) + nameLabel.topMargin
+                height: (visible ? implicitHeight : 0) + app.listItemVerticalMargin
+                lineHeight: 1.15
                 text: visible ? app.tr("Source: %1", model.source) + "\n" + model.attribution : ""
                 truncationMode: TruncationMode.None
                 verticalAlignment: Text.AlignTop
                 visible: model.show_attribution
                 wrapMode: Text.WordWrap
+            }
+
+            SectionHeader {
+                id: alternativesHeader
+                anchors.top: attributionLabel.bottom
+                height: model.default ? implicitHeight : 0
+                text: app.tr("Alternatives")
+                visible: model.default && !listItem.highlighted
             }
 
             onClicked: {
@@ -90,7 +108,7 @@ Dialog {
         Component.onCompleted: {
             // Load router model items from the Python backend.
             py.call("poor.util.get_routers", [], function(routers) {
-                Util.markDefault(routers, app.conf.getDefault("router"));
+                Util.sortDefaultFirst(routers);
                 Util.addProperties(routers, "show_attribution", false);
                 for (var i = 0; i < routers.length; i++)
                     routers[i].modes = routers[i].modes.join(", ");

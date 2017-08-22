@@ -41,7 +41,7 @@ Page {
             ListItemLabel {
                 id: nameLabel
                 color: listItem.highlighted ? Theme.highlightColor : Theme.primaryColor
-                height: implicitHeight + Theme.paddingMedium
+                height: implicitHeight + app.listItemVerticalMargin
                 text: model.name
                 verticalAlignment: Text.AlignBottom
             }
@@ -49,9 +49,11 @@ Page {
             ListItemLabel {
                 id: statLabel
                 anchors.top: nameLabel.bottom
+                anchors.topMargin: Theme.paddingSmall
                 color: Theme.secondaryColor
                 font.pixelSize: Theme.fontSizeExtraSmall
-                height: implicitHeight + Theme.paddingMedium
+                height: implicitHeight + app.listItemVerticalMargin
+                lineHeight: 1.15
                 // model.count is negative during operations, see page.purge.
                 text: model.count < 0 ? "· · ·" : app.tr("%1 tiles · %2", model.count, model.size)
                 verticalAlignment: Text.AlignTop
