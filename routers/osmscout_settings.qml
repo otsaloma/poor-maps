@@ -64,8 +64,8 @@ Column {
             langComboBox.currentIndex = ind;
         }
         onCurrentIndexChanged: {
-            var option = "routers.osmscout.language";
-            app.conf.set(option, langComboBox.keys[langComboBox.currentIndex]);
+            var key = langComboBox.keys[langComboBox.currentIndex]
+            app.conf.set("routers.osmscout.language", key);
         }
     }
 

@@ -73,8 +73,8 @@ Column {
             langComboBox.currentIndex = ind;
         }
         onCurrentIndexChanged: {
-            var option = "routers.mapquest_open.language";
-            app.conf.set(option, langComboBox.keys[langComboBox.currentIndex]);
+            var key = langComboBox.keys[langComboBox.currentIndex];
+            app.conf.set("routers.mapquest_open.language", key);
         }
     }
 
