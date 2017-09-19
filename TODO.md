@@ -1,14 +1,8 @@
-Poor Maps 0.32
+Poor Maps 0.33
 ==============
 
-* [x] Add support for rerouting (#26, rinigus)
-* [x] Redesign navigation status and narrative pages
-* [x] Add OSM Scout car day and night maps (rinigus)
-* [x] Allow searching by latitude/longitude coordinates, e.g.
-      "60.169 24.941" or "60.169,24.941" (period as decimal, any
-      non-alphanumeric separator between latitude and longitude)
-* [x] Fix auto-centering in landscape in navigation mode to not have
-      the position icon overlap with the menu button (#46)
-* [x] Do relative requests to download tiles, fixes HSL map
-* [x] Fix string escaping in Python calls from QML (#50, rinigus)
-* [ ] Update translations
+* [x] Add Cartago Streets basemaps @1x, @2x, @4x (#33)
+* [x] Set default basemap based on screen pixel ratio (#52)
+* [x] Allow navigation page button labels (begin, reroute, clear) to
+      break across lines for better translatability
+* [x] Drop rerouting threshold to 100 meters

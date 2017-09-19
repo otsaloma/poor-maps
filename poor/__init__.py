@@ -17,7 +17,7 @@
 
 """An application to display maps and stuff."""
 
-__version__ = "0.31"
+__version__ = "0.32"
 
 try:
     import pyotherside
@@ -50,8 +50,19 @@ from poor.router import *
 from poor.narrative import *
 from poor.application import *
 
-def main():
+def get_default_basemap(pixel_ratio):
+    """Return default basemap for `pixel_ratio`."""
+    if pixel_ratio >= 3:
+        return "cartago_streets_@4x"
+    if pixel_ratio >= 1.5:
+        return "mapbox_streets_gl_@2x"
+    return "mapbox_streets_gl_@1x"
+
+def main(pixel_ratio=1):
     """Initialize application."""
+    import poor.config
+    basemap = get_default_basemap(pixel_ratio)
+    poor.config.DEFAULTS["basemap"] = basemap
     conf.read()
     global app
     app = Application()

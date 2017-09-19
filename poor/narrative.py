@@ -117,7 +117,7 @@ class Narrative:
         self.current_maneuver = None
         self.distance_route_too_far = 200.0 # [meter] used to check whether route is too far to display instructions
         self.distance_route_too_far_for_direction = 50.0 # [meter] don't auto-rotate when exceeding this distance
-        self.distance_route_init_reroute = 200.0 # [meter] when distance from route is exceeded, triggers rerouting calculations
+        self.distance_route_init_reroute = 100.0 # [meter] when distance from route is exceeded, triggers rerouting calculations
         self.voice_engine = VoiceCommand()
         self.navigation_active = False # True while navigating
         self.language = "en" # language used for routing instructions
