@@ -17,7 +17,7 @@
 
 """An application to display maps and stuff."""
 
-__version__ = "0.32"
+__version__ = "0.33"
 
 try:
     import pyotherside
@@ -52,8 +52,10 @@ from poor.application import *
 
 def get_default_basemap(pixel_ratio):
     """Return default basemap for `pixel_ratio`."""
-    if pixel_ratio >= 3:
+    if pixel_ratio >= 3.5:
         return "cartago_streets_@4x"
+    if pixel_ratio >= 2.5:
+        return "cartago_streets_@3x"
     if pixel_ratio >= 1.5:
         return "mapbox_streets_gl_@2x"
     return "mapbox_streets_gl_@1x"
