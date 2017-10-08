@@ -24,7 +24,7 @@ import statistics
 
 from poor.i18n import _
 from poor.i18n import __
-from poor.voicecommand import VoiceCommand
+from poor.voice import VoiceDirection
 
 __all__ = ("Narrative",)
 
@@ -62,7 +62,7 @@ class Maneuver:
             setattr(self, name, kwargs[name])
         if self.verbal_alert is None: self.verbal_alert = self.narrative
         if self.verbal_pre is None: self.verbal_pre = self.narrative
-        # voice commands: alert and pre parameters
+        # voice directions: alert and pre parameters
         self.voice_pre_distance = 50
         self.voice_pre_time = 5
 
@@ -93,9 +93,9 @@ class Maneuver:
 
             for t in times:
                 distance_alert = poor.util.round_distance( t * speed )
-                prompt = __("In {distance}, {command}", language).format(
+                prompt = __("In {distance}, {direction}", language).format(
                     distance = poor.util.format_distance(distance_alert, voice=True),
-                    command = self.verbal_alert)
+                    direction = self.verbal_alert)
 
                 self.verbal_prompts_before.append( VerbalPrompt(distance = distance_alert,
                                                                 prompt = prompt) )
@@ -118,7 +118,7 @@ class Narrative:
         self.distance_route_too_far = 200.0 # [meter] used to check whether route is too far to display instructions
         self.distance_route_too_far_for_direction = 50.0 # [meter] don't auto-rotate when exceeding this distance
         self.distance_route_init_reroute = 100.0 # [meter] when distance from route is exceeded, triggers rerouting calculations
-        self.voice_engine = VoiceCommand()
+        self.voice_engine = VoiceDirection()
         self.navigation_active = False # True while navigating
         self.language = "en" # language used for routing instructions
 
@@ -248,12 +248,12 @@ class Narrative:
         # Trigger rerouting if far off route.
         reroute = seg_dist > self.distance_route_init_reroute + (accuracy or 40000000)
 
-        # voice commands support
+        # voice directions support
         voice_to_play = None
         if ( self.navigation_active and
              self.voice_engine.active() and
              seg_dist < self.distance_route_too_far_for_direction ):
-            # no voice commands when too far from the route
+            # no voice directions when too far from the route
 
             if self.current_maneuver is None:
                 # just starting, not much to do this time
@@ -386,14 +386,14 @@ class Narrative:
                     voice_to_play=None)
 
     def _set_current_maneuver(self, maneuver):
-        """Set the current maneuver and request the corresponding voice commands"""
+        """Set the current maneuver and request the corresponding voice directions"""
         # set current maneuver
         self.current_maneuver = copy.deepcopy(maneuver)
 
         if not self.voice_engine.active():
             return
 
-        # request to make voice commands for current and
+        # request to make voice directions for current and
         # few future maneuvers
         node = maneuver.node
         for i in range(3):
@@ -502,7 +502,7 @@ class Narrative:
         self.mode = mode
 
     def set_voice(self, language, sex = "male"):
-        """Set voice commands mode"""
+        """Set voice directions mode"""
         self.language = language
         self.voice_engine.set_voice(language, sex)
 

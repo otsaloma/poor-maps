@@ -33,7 +33,7 @@ def _(message):
 
 def __(message, language):
     """Return the translation of `message` to `language`. Note that the same
-    notation is used for languages, as in the voicecommand module"""
+    notation is used for languages, as in the voice module"""
     # exceptions
     l = {
         "de": "de_DE",

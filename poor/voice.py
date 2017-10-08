@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Voice command support"""
+"""Voice directions support"""
 
 import copy
 import os
@@ -31,7 +31,7 @@ import poor.util
 
 ##############################################################################
 class Voice:
-    """Helper class to store file name of the voice command and the corresponding time moment"""
+    """Helper class to store file name of the voice direction and the corresponding time moment"""
 
     def __init__(self, filename = None, time = None):
         self.filename = filename
@@ -276,12 +276,12 @@ def voice_worker(queue_tasks, queue_results, engine, tmpdir):
 
 ##############################################################################
 # Interface to available voice engines
-class VoiceCommand:
+class VoiceDirection:
 
-    """Voice command generator"""
+    """Voice direction generator"""
 
     def __init__(self):
-        """Initialize a :class:`VoiceCommand` instance."""
+        """Initialize a :class:`VoiceDirection` instance."""
         self.tmpdir = None
         # fill engines in the order of preference
         self.engines = [ VoiceEngineMimic(), VoiceEngineMimicEnUsPirate(),
@@ -363,13 +363,13 @@ class VoiceCommand:
             self.worker_thread.start()
 
         # add an empty element into cache to ensure that we don't
-        # run the same command twice through the engine
+        # run the same voice direction twice through the engine
         self.cache[cmd] = Voice(time=time)
         self.queue_tasks.put(cmd)
         #print("Request", cmd, time)
 
     def get(self, cmd):
-        """Get the voice for the command"""
+        """Get the voice for the direction"""
         self._update_cache()
         voice = self.cache.get(cmd, None)
         #print("Wanted:", cmd, vars(voice))

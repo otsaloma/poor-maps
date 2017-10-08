@@ -49,7 +49,7 @@ If the router supports multiple languages, provide the list of the
 languages in `*_settings.qml` and use the user-given selection in
 Python `route` function. When returning narration language as a part
 of the return dictionary of `route`, note that you have to use the
-same notation for languages as used in `poor/voicecommand.py` by voice
+same notation for languages as used in `poor/voice.py` by voice
 engines as keys of languages dictionary. See Mapzen and OSM Scout
 routers for example on how to implement language settings in QML and
 Python.

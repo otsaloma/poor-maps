@@ -255,7 +255,7 @@ Map {
         map.route.language = route.language;
         map.route.redraw();
         py.call_sync("poor.app.narrative.set_mode", [route.mode || "car"]);
-        if (app.conf.get("voice_commands")) {
+        if (app.conf.get("voice_directions")) {
             py.call_sync("poor.app.narrative.set_voice", [route.language, app.conf.get("voice_gender")], null);
         } else {
             py.call_sync("poor.app.narrative.set_voice", [null])
