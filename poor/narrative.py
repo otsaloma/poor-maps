@@ -94,7 +94,7 @@ class Maneuver:
             for t in times:
                 distance_alert = poor.util.round_distance( t * speed )
                 prompt = __("In {distance}, {direction}", language).format(
-                    distance = poor.util.format_distance(distance_alert, voice=True),
+                    distance = poor.util.format_distance(distance_alert, short=False),
                     direction = self.verbal_alert)
 
                 self.verbal_prompts_before.append( VerbalPrompt(distance = distance_alert,

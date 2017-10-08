@@ -161,28 +161,28 @@ def find_closest(xs, ys, x, y, subset=None):
             min_dist = dist
     return min_index
 
-def format_distance(meters, n=2, voice=False):
+def format_distance(meters, n=2, short=True):
     """Format `meters` to `n` significant digits and unit label."""
     if poor.conf.units == "american":
         feet = 3.28084 * meters
-        return format_distance_american(feet, n, voice)
+        return format_distance_american(feet, n, short)
     if poor.conf.units == "british":
         yards = 1.09361 * meters
-        return format_distance_british(yards, n, voice)
-    return format_distance_metric(meters, n, voice)
+        return format_distance_british(yards, n, short)
+    return format_distance_metric(meters, n, short)
 
-def format_distance_american(feet, n=2, voice=False):
+def format_distance_american(feet, n=2, short=True):
     """Format `feet` to `n` significant digits and unit label."""
     if (n > 1 and feet >= 1000) or feet >= 5280:
         distance = feet / 5280
-        if voice: units = _("miles")
-        else: units = "mi"
+        if short: units = "mi"
+        else: units = _("miles")
         in_feet = False
     else:
         # Let's not use units less than a foot.
         distance = feet
-        if voice: units = _("feet")
-        else: units = "ft"
+        if short: units = "ft"
+        else: units = _("feet")
         in_feet = True
     ndigits = n - math.ceil(math.log10(abs(max(1, distance)) + 1/1000000))
     if in_feet:
@@ -191,18 +191,18 @@ def format_distance_american(feet, n=2, voice=False):
     fstring = "{{:.{:d}f}} {{}}".format(max(0, ndigits))
     return fstring.format(distance, units)
 
-def format_distance_british(yards, n=2, voice=False):
+def format_distance_british(yards, n=2, short=True):
     """Format `yards` to `n` significant digits and unit label."""
     if (n > 1 and yards >= 400) or yards >= 1760:
         distance = yards / 1760
-        if voice: units = _("miles")
-        else: units = "mi"
+        if short: units = "mi"
+        else: units = _("miles")
         in_yards = False
     else:
         # Let's not use units less than a yard.
         distance = yards
-        if voice: units = _("yards")
-        else: units = "yd"
+        if short: units = "yd"
+        else: units = _("yards")
         in_yards = True
     ndigits = n - math.ceil(math.log10(abs(max(1, distance)) + 1/1000000))
     if in_yards:
@@ -211,18 +211,18 @@ def format_distance_british(yards, n=2, voice=False):
     fstring = "{{:.{:d}f}} {{}}".format(max(0, ndigits))
     return fstring.format(distance, units)
 
-def format_distance_metric(meters, n=2, voice=False):
+def format_distance_metric(meters, n=2, short=True):
     """Format `meters` to `n` significant digits and unit label."""
     if meters >= 1000:
         distance = meters / 1000
-        if voice: units = _("kilometers")
-        else: units = "km"
+        if short: units = "km"
+        else: units = _("kilometers")
         in_meters = False
     else:
         # Let's not use units less than a meter.
         distance = meters
-        if voice: units = _("meters")
-        else: units = "m"
+        if short: units = "m"
+        else: units = _("meters")
         in_meters = True
     ndigits = n - math.ceil(math.log10(abs(max(1, distance)) + 1/1000000))
     if in_meters:
@@ -231,9 +231,9 @@ def format_distance_metric(meters, n=2, voice=False):
     fstring = "{{:.{:d}f}} {{}}".format(max(0, ndigits))
     return fstring.format(distance, units)
 
-def format_distance_and_bearing(meters, bearing, n=2, voice=False):
+def format_distance_and_bearing(meters, bearing, n=2, short=True):
     """Format `meters` and `bearing` to a human readable string."""
-    distance = format_distance(meters, n, voice)
+    distance = format_distance(meters, n, short)
     f = lambda x: x.format(distance=distance)
     bearing = (bearing + 360) % 360
     bearing = int(round(bearing/45) * 45)
