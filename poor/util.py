@@ -26,6 +26,7 @@ import math
 import os
 import poor
 import random
+import re
 import shutil
 import stat
 import subprocess
@@ -175,19 +176,18 @@ def format_distance_american(feet, n=2, short=True):
     """Format `feet` to `n` significant digits and unit label."""
     if (n > 1 and feet >= 1000) or feet >= 5280:
         distance = feet / 5280
-        if short: units = "mi"
-        else: units = _("miles")
-        in_feet = False
+        units = "mi"
     else:
         # Let's not use units less than a foot.
         distance = feet
-        if short: units = "ft"
-        else: units = _("feet")
-        in_feet = True
+        units = "ft"
     ndigits = n - math.ceil(math.log10(abs(max(1, distance)) + 1/1000000))
-    if in_feet:
+    if units == "ft":
         ndigits = min(0, ndigits)
     distance = round(distance, ndigits)
+    if not short:
+        units = re.sub("^mi$", _("miles"), units)
+        units = re.sub("^ft$", _("feet"), units)    
     fstring = "{{:.{:d}f}} {{}}".format(max(0, ndigits))
     return fstring.format(distance, units)
 
@@ -195,19 +195,18 @@ def format_distance_british(yards, n=2, short=True):
     """Format `yards` to `n` significant digits and unit label."""
     if (n > 1 and yards >= 400) or yards >= 1760:
         distance = yards / 1760
-        if short: units = "mi"
-        else: units = _("miles")
-        in_yards = False
+        units = "mi"
     else:
         # Let's not use units less than a yard.
         distance = yards
-        if short: units = "yd"
-        else: units = _("yards")
-        in_yards = True
+        units = "yd"
     ndigits = n - math.ceil(math.log10(abs(max(1, distance)) + 1/1000000))
-    if in_yards:
+    if units == "yd":
         ndigits = min(0, ndigits)
     distance = round(distance, ndigits)
+    if not short:
+        units = re.sub("^mi$", _("miles"), units)
+        units = re.sub("^yd$", _("yards"), units)
     fstring = "{{:.{:d}f}} {{}}".format(max(0, ndigits))
     return fstring.format(distance, units)
 
@@ -215,19 +214,18 @@ def format_distance_metric(meters, n=2, short=True):
     """Format `meters` to `n` significant digits and unit label."""
     if meters >= 1000:
         distance = meters / 1000
-        if short: units = "km"
-        else: units = _("kilometers")
-        in_meters = False
+        units = "km"
     else:
         # Let's not use units less than a meter.
         distance = meters
-        if short: units = "m"
-        else: units = _("meters")
-        in_meters = True
+        units = "m"
     ndigits = n - math.ceil(math.log10(abs(max(1, distance)) + 1/1000000))
-    if in_meters:
+    if units == "m":
         ndigits = min(0, ndigits)
     distance = round(distance, ndigits)
+    if not short:
+        units = re.sub("^m$", _("meters"), units)
+        units = re.sub("^km$", _("kilometers"), units)
     fstring = "{{:.{:d}f}} {{}}".format(max(0, ndigits))
     return fstring.format(distance, units)
 
