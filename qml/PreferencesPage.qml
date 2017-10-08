@@ -71,25 +71,6 @@ Page {
             }
 
             ComboBox {
-                id: voiceGenderComboBox
-                description: app.tr("Preferred gender for the voice prompts during navigation instructions. Note that some languages and voice synthesizers have only one voice and selection of a gender is not possible.")
-                label: app.tr("Voice gender")
-                menu: ContextMenu {
-                    MenuItem { text: app.tr("Male") }
-                    MenuItem { text: app.tr("Female") }
-                }
-                property var values: ["male", "female"]
-                Component.onCompleted: {
-                    var value = app.conf.get("voice_gender");
-                    voiceGenderComboBox.currentIndex = voiceGenderComboBox.values.indexOf(value);
-                }
-                onCurrentIndexChanged: {
-                    var index = voiceGenderComboBox.currentIndex;
-                    app.conf.set("voice_gender", voiceGenderComboBox.values[index]);
-                }
-            }
-
-            ComboBox {
                 id: sleepComboBox
                 description: app.tr("Only applies when Poor Maps is active. When minimized, sleep is controlled by normal device-level preferences.")
                 label: app.tr("Prevent sleep")
