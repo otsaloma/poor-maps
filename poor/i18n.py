@@ -27,6 +27,8 @@ _translation = gettext.translation(
     languages=[locale.getdefaultlocale()[0] or ""],
     fallback=True)
 
+_foreign_translations = {}
+
 def _(message):
     """Return the localized translation of `message`."""
     return _translation.gettext(message)
@@ -42,7 +44,11 @@ def __(message, language):
         "en-US-x-pirate": "en_US",
         "es": "es_ES",
         }
-    return gettext.translation( "poor-maps",
-                                localedir=poor.LOCALE_DIR,
-                                languages=l.get(language, language),
-                                fallback=True ).gettext(message)
+
+    lang = l.get(language, language)
+    if not lang in _foreign_translations:
+        _foreign_translations[lang] = gettext.translation( "poor-maps",
+                                                           localedir=poor.LOCALE_DIR,
+                                                           languages=lang,
+                                                           fallback=True )
+    return _foreign_translations[lang].gettext(message)
