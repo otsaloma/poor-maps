@@ -34,80 +34,55 @@ msgstr ""
 #: qml/RoutePage.qml:27 qml/RoutePage.qml:28 qml/RoutePage.qml:78
 #: qml/RoutePage.qml:86 qml/RoutePage.qml:111 qml/RoutePage.qml:119
 #: qml/RoutePage.qml:169 qml/RoutePage.qml:174 qml/RoutePage.qml:176
-#: qml/RoutePage.qml:180 qml/RoutePointPage.qml:88 qml/RoutePointPage.qml:91
+#: qml/RoutePointPage.qml:88 qml/RoutePointPage.qml:91
 msgid "Current position"
 msgstr ""
 
-#: poor/narrative.py:222
-#, python-brace-format
-msgid "In {distance}, {command}"
-msgstr ""
-
-#: poor/util.py:178 poor/util.py:198
-msgid "miles"
-msgstr ""
-
-#: poor/util.py:184
-msgid "feet"
-msgstr ""
-
-#: poor/util.py:204
-msgid "yards"
-msgstr ""
-
-#: poor/util.py:218
-msgid "kilometers"
-msgstr ""
-
-#: poor/util.py:224
-msgid "meters"
-msgstr ""
-
-#: poor/util.py:240 poor/util.py:248
+#: poor/util.py:228 poor/util.py:236
 #, python-brace-format
 msgid "{distance} north"
 msgstr ""
 
-#: poor/util.py:241
+#: poor/util.py:229
 #, python-brace-format
 msgid "{distance} north-east"
 msgstr ""
 
-#: poor/util.py:242
+#: poor/util.py:230
 #, python-brace-format
 msgid "{distance} east"
 msgstr ""
 
-#: poor/util.py:243
+#: poor/util.py:231
 #, python-brace-format
 msgid "{distance} south-east"
 msgstr ""
 
-#: poor/util.py:244
+#: poor/util.py:232
 #, python-brace-format
 msgid "{distance} south"
 msgstr ""
 
-#: poor/util.py:245
+#: poor/util.py:233
 #, python-brace-format
 msgid "{distance} south-west"
 msgstr ""
 
-#: poor/util.py:246
+#: poor/util.py:234
 #, python-brace-format
 msgid "{distance} west"
 msgstr ""
 
-#: poor/util.py:247
+#: poor/util.py:235
 #, python-brace-format
 msgid "{distance} north-west"
 msgstr ""
 
-#: poor/util.py:285
+#: poor/util.py:273
 msgid "{:d} min"
 msgstr ""
 
-#: poor/util.py:286
+#: poor/util.py:274
 msgid "{:d} h {:d} min"
 msgstr ""
 
@@ -513,19 +488,11 @@ msgstr ""
 msgid "Web"
 msgstr ""
 
-#: qml/poor-maps.qml:122
-msgid "Finding new route"
-msgstr ""
-
-#: qml/poor-maps.qml:145
-msgid "New route not found"
-msgstr ""
-
-#: qml/PositionMarker.qml:66 TEST/PositionMarker.qml:66
+#: qml/PositionMarker.qml:66
 msgid "Auto-center off"
 msgstr ""
 
-#: qml/PositionMarker.qml:69 TEST/PositionMarker.qml:69
+#: qml/PositionMarker.qml:69
 msgid "Auto-center on"
 msgstr ""
 
@@ -735,54 +702,6 @@ msgstr ""
 
 #: routers/mapquest_open_settings.qml:48
 msgid "Try to avoid tolls"
-msgstr ""
-
-#: routers/osmscout_settings.qml:45
-msgid "Language"
-msgstr ""
-
-#: routers/osmscout_settings.qml:47
-msgid "Catalan"
-msgstr ""
-
-#: routers/osmscout_settings.qml:48
-msgid "Czech"
-msgstr ""
-
-#: routers/osmscout_settings.qml:49
-msgid "German"
-msgstr ""
-
-#: routers/osmscout_settings.qml:50
-msgid "English (US)"
-msgstr ""
-
-#: routers/osmscout_settings.qml:51
-msgid "English Pirate"
-msgstr ""
-
-#: routers/osmscout_settings.qml:52
-msgid "Spanish"
-msgstr ""
-
-#: routers/osmscout_settings.qml:53
-msgid "Hindi"
-msgstr ""
-
-#: routers/osmscout_settings.qml:54
-msgid "Italian"
-msgstr ""
-
-#: routers/osmscout_settings.qml:55
-msgid "Russian"
-msgstr ""
-
-#: routers/osmscout_settings.qml:56
-msgid "Slovenian"
-msgstr ""
-
-#: routers/osmscout_settings.qml:57
-msgid "Swedish"
 msgstr ""
 
 #: qml/js/util.js:94
