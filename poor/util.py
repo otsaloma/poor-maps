@@ -187,7 +187,7 @@ def format_distance_american(feet, n=2, short=True):
     distance = round(distance, ndigits)
     if not short:
         units = re.sub("^mi$", _("miles"), units)
-        units = re.sub("^ft$", _("feet"), units)    
+        units = re.sub("^ft$", _("feet"), units)
     fstring = "{{:.{:d}f}} {{}}".format(max(0, ndigits))
     return fstring.format(distance, units)
 
@@ -429,21 +429,31 @@ def requirement_found(name):
         return os.path.exists(name)
     return shutil.which(name) is not None
 
-def round_distance(distance):
-    """Round distance taking into account used units and return it in meters"""
+def round_distance(meters, n=2):
+    """Round `meters` to `n` significant digits in native units."""
     mile = 1609.34
     yard = 0.9144
-    foot = yard / 3
-    if distance >= mile and (poor.conf.units == "american" or poor.conf.units == "british"):
-        return round(distance / mile, 1) * mile
-    elif poor.conf.units == "american":
-        return round(distance / foot / 100) * foot * 100
+    foot = 0.3048
+    if poor.conf.units == "american":
+        if meters >= mile:
+            return siground(meters/mile, n) * mile
+        n = min(n, math.ceil(math.log10(meters/foot)))
+        return siground(meters/foot, n) * mile
     elif poor.conf.units == "british":
-        return round(distance / yard / 50) * yard * 50
-    # metric case left
-    elif distance > 1000:
-        return round(distance / 1e3, 1) * 1e3
-    return round(distance / 50) * 50
+        if meters >= mile:
+            return siground(meters/mile, n) * mile
+        n = min(n, math.ceil(math.log10(meters/yard)))
+        return siground(meters/yard, n) * mile
+    else: # Metric
+        if meters >= 1000:
+            return siground(meters/1000, n) * 1000
+        n = min(n, math.ceil(math.log10(meters)))
+        return siground(meters, n)
+
+def siground(x, n):
+    """Round `x` to `n` significant digits."""
+    mult = 10**(n - math.floor(math.log10(x)) - 1)
+    return round(x * mult) / mult
 
 @contextlib.contextmanager
 def silent(*exceptions, tb=False):
