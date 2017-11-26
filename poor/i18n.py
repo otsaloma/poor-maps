@@ -34,21 +34,19 @@ def _(message):
     return _translation.gettext(message)
 
 def __(message, language):
-    """Return the translation of `message` to `language`. Note that the same
-    notation is used for languages, as in the voice module"""
-    # exceptions
-    l = {
+    """Return the translation of `message` to `language`."""
+    # Convert from provider API languages to our translations.
+    # https://www.transifex.com/otsaloma/poor-maps/languages/
+    language = {
         "de": "de_DE",
-        "en": "en_US",
-        "en-US": "en_US",
-        "en-US-x-pirate": "en_US",
         "es": "es_ES",
-        }
+    }.get(language, language)
+    if not language in _foreign_translations:
+        _foreign_translations[language] = gettext.translation(
+            "poor-maps",
+            localedir=poor.LOCALE_DIR,
+            languages=[language],
+            fallback=True)
 
-    lang = l.get(language, language)
-    if not lang in _foreign_translations:
-        _foreign_translations[lang] = gettext.translation( "poor-maps",
-                                                           localedir=poor.LOCALE_DIR,
-                                                           languages=lang,
-                                                           fallback=True )
-    return _foreign_translations[lang].gettext(message)
+    translation = _foreign_translations[language]
+    return translation.gettext(message)

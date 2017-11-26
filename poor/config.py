@@ -45,7 +45,7 @@ DEFAULTS = {
     # "metric", "american" or "british".
     "units": "metric",
     "voice_directions": True,
-    # male or female
+    # "male" or "female"
     "voice_gender": "male",
     "zoom": 3,
 }
