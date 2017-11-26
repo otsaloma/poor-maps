@@ -24,7 +24,6 @@ import statistics
 
 from poor.i18n import _
 from poor.i18n import __
-from poor.voice import VoiceDirection
 
 __all__ = ("Narrative",)
 
@@ -118,7 +117,7 @@ class Narrative:
         self.distance_route_too_far = 200.0 # [meter] used to check whether route is too far to display instructions
         self.distance_route_too_far_for_direction = 50.0 # [meter] don't auto-rotate when exceeding this distance
         self.distance_route_init_reroute = 100.0 # [meter] when distance from route is exceeded, triggers rerouting calculations
-        self.voice_engine = VoiceDirection()
+        self.voice_engine = poor.VoiceGenerator()
         self.navigation_active = False # True while navigating
         self.language = "en" # language used for routing instructions
 
@@ -251,7 +250,7 @@ class Narrative:
         # voice directions support
         voice_to_play = None
         if ( self.navigation_active and
-             self.voice_engine.active() and
+             self.voice_engine.active and
              seg_dist < self.distance_route_too_far_for_direction ):
             # no voice directions when too far from the route
 
@@ -272,7 +271,7 @@ class Narrative:
                         break
 
                 else: # not much to do, use for maintenance
-                    self.voice_engine.set_time(self.time[node])
+                    pass
 
             else: # maneuver changed
 
@@ -390,7 +389,7 @@ class Narrative:
         # set current maneuver
         self.current_maneuver = copy.deepcopy(maneuver)
 
-        if not self.voice_engine.active():
+        if not self.voice_engine.active:
             return
 
         # request to make voice directions for current and
@@ -400,10 +399,10 @@ class Narrative:
             time = self.time[node]
             man = self.maneuver[node]
             for p in man.verbal_prompts_before:
-                self.voice_engine.make(p.prompt, time)
+                self.voice_engine.make(p.prompt)
 
             if man.verbal_post:
-                self.voice_engine.make(man.verbal_post, time)
+                self.voice_engine.make(man.verbal_post)
 
             if len(self.maneuver) > node+1:
                 node = self.maneuver[node+1].node
@@ -501,10 +500,10 @@ class Narrative:
         """
         self.mode = mode
 
-    def set_voice(self, language, sex = "male"):
+    def set_voice(self, language, gender = "male"):
         """Set voice directions mode"""
         self.language = language
-        self.voice_engine.set_voice(language, sex)
+        self.voice_engine.set_voice(language, gender)
 
     def set_route(self, x, y):
         """Set route from coordinates."""
@@ -559,5 +558,5 @@ class Narrative:
 
     def quit(self):
         """Cleanup before quiting application"""
-        del self.voice_engine
+        self.voice_engine.quit()
         self.voice_engine = None

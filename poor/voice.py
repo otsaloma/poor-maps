@@ -15,387 +15,267 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Voice directions support"""
+"""Text-to-speech (TTS) engines and voice directions support."""
 
-import copy
+import atexit
 import os
 import poor
-import re
+import queue
 import shutil
 import subprocess
 import tempfile
 import threading
-import queue
 
-import poor.util
-
-##############################################################################
-class Voice:
-    """Helper class to store file name of the voice direction and the corresponding time moment"""
-
-    def __init__(self, filename = None, time = None):
-        self.filename = filename
-        self.time = time
-
-##############################################################################
-# Base class for voice engines responsible for converting text to WAV
-# file
-##############################################################################
-class VoiceEngineBase:
-
-    """Base class for voice engines. Provides methods that allow to test
-    whether requested language is supported and set the voice name
-    based on the disctionary filled by the objects from descending
-    classes.
-    """
-
-    def __init__(self):
-        self.languages = {}
-        self.voice_name = None
-        self.command = None
-
-    def set_command(self, cmds):
-        """Set command for this engine from the list of possible commands"""
-        for cmd in cmds:
-            if poor.util.requirement_found(cmd):
-                self.command = cmd
-                return
-
-    def supports(self, language):
-        """Return true if the engine supports the requested language"""
-        return self.command is not None and language in self.languages
-
-    def _get_voice_name(self, language, sex):
-        if language in self.languages:
-            a = self.languages[language]
-            if sex in a:
-                return a[sex]
-            return next (iter (a.values()))
-        return None
-
-    def set_voice(self, language, sex = "male"):
-        """Set the voice used for WAV file generation"""
-        self.voice_name = self._get_voice_name(language, sex)
+__all__ = ("VoiceGenerator",)
 
 
-##############################################################################
-# Base class for voice engines that process some words in en-US-x-pirate and
-# replace them with SSML phonemes
-##############################################################################
-class VoiceEngineEnUsPirate(VoiceEngineBase):
+class VoiceEngine:
 
-    """Base class used by mimic and flite-based voice engines for en-US-x-pirate locale"""
+    """Base class for text-to-speech (TTS) engines."""
 
-    def __init__(self):
-        self.phonemes = { "Arrr": "aa r ah0 r r .",
-                          "Cap'n": "k ae1 p n",
-                          "head'n": "hh eh1 d ah0 n",
-                          "th'": "dh" }
+    commands = []
+    voices = {}
 
-    def process_text(self, text):
-        # preprocess to catch few words in Pirate's dictionary
-        for word, ph in self.phonemes.items():
-            if word == "th'":
-                text = text.replace(" %s " % word, ' <phoneme ph="%s">phonemes-given</phoneme> ' % ph)
-            else:
-                text = re.sub(r"\b%s\b" % word, '<phoneme ph="%s">phonemes-given</phoneme>' % ph, text)
-        return text        
-
-
-##############################################################################
-### Specific voice engines
-##############################################################################
-#
-# Voice engine has to fill in
-#
-# * language dictionary with the voices
-# * command that can be checked for existing executable
-#
-# and provide make_wav method.
-
-##############################################################################
-class VoiceEngineMimic(VoiceEngineBase):
-
-    """Interface to mimic"""
-
-    def __init__(self):
-        VoiceEngineBase.__init__(self)
-        self.languages = {
-            "en": { "male": "ap", "female": "slt" },
-            "en-US": { "male": "ap", "female": "slt" },
-        }
-        self.set_command(["mimic", "harbour-mimic"])
+    def __init__(self, language, gender="male"):
+        """Initialize a :class:`VoiceEngine` instance."""
+        commands = list(filter(poor.util.requirement_found, self.commands))
+        self.command = commands[0] if commands else None
+        self.gender = gender
+        self.language = language
 
     def make_wav(self, text, fname):
-        """Create a new WAV file specified by fname with the specified text
-        using given language and, if possible, sex"""
-        return subprocess.call([self.command,
-                                '-t', text,
-                                '-o', fname,
-                                '-voice', self.voice_name]) == 0
+        """Generate voice output to WAV file `fname`."""
+        raise NotImplementedError
 
-class VoiceEngineMimicEnUsPirate(VoiceEngineEnUsPirate):
+    @classmethod
+    def supports(cls, language):
+        """Return ``True`` if `language` is supported."""
+        commands = filter(poor.util.requirement_found, cls.commands)
+        return any(commands) and language in cls.voices
 
-    """Interface to mimic using SSML for tricky pronunciations for en-US-x-pirate locale"""
+    @property
+    def voice_name(self):
+        """Return name of the voice to use."""
+        other = "female" if self.gender == "male" else "male"
+        return self.voices[self.language].get(self.gender, other)
 
-    def __init__(self):
-        VoiceEngineBase.__init__(self)
-        VoiceEngineEnUsPirate.__init__(self)
-        self.languages = {
-            # don't use ap voice since it has issues with SSML phoneme
-            "en-US-x-pirate": { "male": "awb", "female": "slt" }
-        }
-        self.set_command(["mimic", "harbour-mimic"])
 
-    def make_wav(self, text, fname):
-        """Create a new WAV file specified by fname with the specified text
-        using given language and, if possible, sex"""
-        text = self.process_text(text)
-        return subprocess.call([self.command,
-                                '-ssml',
-                                '-t', text,
-                                '-o', fname,
-                                '-voice', self.voice_name]) == 0
+class VoiceEngineEspeak(VoiceEngine):
 
-##############################################################################
-class VoiceEngineFlite(VoiceEngineBase):
+    """Text-to-speech (TTS) using eSpeak."""
 
-    """Interface to flite"""
-
-    def __init__(self):
-        VoiceEngineBase.__init__(self)
-        self.languages = {
-            "en": { "male": "kal16", "female": "slt" },
-            "en-US": { "male": "kal16", "female": "slt" },
-        }
-        self.set_command(["flite", "harbour-flite"])
+    commands = ["espeak", "harbour-espeak"]
+    voices = {
+        "ca":    {"male": "catalan"},
+        "cz":    {"male": "czech"},
+        "de":    {"male": "german"},
+        "en":    {"male": "english-us"},
+        "en_US": {"male": "english-us"},
+        "es":    {"male": "spanish"},
+        "fr":    {"male": "french"},
+        "hi":    {"male": "hindi"},
+        "it":    {"male": "italian"},
+        "ru":    {"male": "russian_test"},
+        "sl":    {"male": "slovak"},
+        "sv":    {"male": "swedish"},
+    }
 
     def make_wav(self, text, fname):
-        """Create a new WAV file specified by fname with the specified text
-        using given language and, if possible, sex"""
-        return subprocess.call([self.command,
-                                '-t', text,
-                                '-o', fname,
-                                '-voice', self.voice_name]) == 0
+        """Generate voice output to WAV file `fname`."""
+        with open(fname, "w") as f:
+            return subprocess.call([self.command,
+                                    "--stdout",
+                                    "-v", self.voice_name,
+                                    text], stdout=f) == 0
 
-class VoiceEngineFliteEnUsPirate(VoiceEngineEnUsPirate):
 
-    """Interface to flite using SSML for tricky pronunciations for en-US-x-pirate locale"""
+class VoiceEngineFlite(VoiceEngine):
 
-    def __init__(self):
-        VoiceEngineBase.__init__(self)
-        VoiceEngineEnUsPirate.__init__(self)
-        self.languages = {
-            # don't use ap voice since it has issues with SSML phoneme
-            "en-US-x-pirate": { "male": "awb", "female": "slt" }
-        }
-        self.set_command(["flite", "harbour-flite"])
+    """Text-to-speech (TTS) using CMU Flite (festival-lite)."""
+
+    commands = ["flite", "harbour-flite"]
+    voices = {
+        "en":    {"male": "kal16", "female": "slt"},
+        "en_US": {"male": "kal16", "female": "slt"},
+    }
 
     def make_wav(self, text, fname):
-        """Create a new WAV file specified by fname with the specified text
-        using given language and, if possible, sex"""
-        text = self.process_text(text)
+        """Generate voice output to WAV file `fname`."""
         return subprocess.call([self.command,
-                                '-ssml',
-                                '-t', text,
-                                '-o', fname,
-                                '-voice', self.voice_name]) == 0
+                                "-t", text,
+                                "-o", fname,
+                                "-voice", self.voice_name]) == 0
 
-##############################################################################
-class VoiceEnginePicoTTS(VoiceEngineBase):
 
-    """Interface to PicoTTS"""
+class VoiceEngineMimic(VoiceEngine):
 
-    def __init__(self):
-        VoiceEngineBase.__init__(self)
-        self.languages = {
-            "de": { "female": "de-DE" },
-            "en": { "female": "en-US" },
-            "en-GB": { "female": "en-GB" },
-            "en-US": { "female": "en-US" },
-            "en-US-x-pirate": { "female": "en-US" },
-            "es": { "female": "es-ES" },
-            "fr": { "female": "fr-FR" },
-            "it": { "female": "it-IT" }
-        }
-        self.set_command(["pico2wave", "harbour-pico2wave"])
+    """Text-to-speech (TTS) using Mimic (The Mycroft TTS Engine)."""
+
+    commands = ["mimic", "harbour-mimic"]
+    voices = {
+        "en":    {"male": "ap", "female": "slt"},
+        "en_US": {"male": "ap", "female": "slt"},
+    }
 
     def make_wav(self, text, fname):
-        """Create a new WAV file specified by fname with the specified text
-        using given language and, if possible, sex"""
+        """Generate voice output to WAV file `fname`."""
         return subprocess.call([self.command,
-                                '-w', fname,
-                                '-l', self.voice_name,
+                                "-t", text,
+                                "-o", fname,
+                                "-voice", self.voice_name]) == 0
+
+
+class VoiceEnginePicoTTS(VoiceEngine):
+
+    """Text-to-speech (TTS) using PicoTTS."""
+
+    commands = ["pico2wave", "harbour-pico2wave"]
+    voices = {
+        "de":    {"female": "de-DE"},
+        "en":    {"female": "en-US"},
+        "en_GB": {"female": "en-GB"},
+        "en_US": {"female": "en-US"},
+        "es":    {"female": "es-ES"},
+        "fr":    {"female": "fr-FR"},
+        "it":    {"female": "it-IT"},
+    }
+
+    def make_wav(self, text, fname):
+        """Generate voice output to WAV file `fname`."""
+        return subprocess.call([self.command,
+                                "-w", fname,
+                                "-l", self.voice_name,
                                 text]) == 0
 
-##############################################################################
-class VoiceEngineEspeak(VoiceEngineBase):
 
-    """Interface to espeak"""
-
-    def __init__(self):
-        VoiceEngineBase.__init__(self)
-        self.languages = {
-            "ca": { "male": "catalan" },
-            "cz": { "male": "czech" },
-            "de": { "male": "german" },
-            "en": { "male": "english-us" },
-            "en-US": { "male": "english-us" },
-            "en-US-x-pirate": { "male": "en-scottish" },
-            "es": { "male": "spanish" },
-            "fr": { "male": "french" },
-            "hi": { "male": "hindi" },
-            "it": { "male": "italian" },
-            "ru": { "male": "russian_test" },
-            "sl": { "male": "slovak" },
-            "sv": { "male": "swedish" }
-        }
-        self.set_command(["espeak", "harbour-espeak"])
-
-    def make_wav(self, text, fname):
-        """Create a new WAV file specified by fname with the specified text
-        using given language and, if possible, sex"""
-        with open(fname, "w") as f:
-            result = (subprocess.call([self.command, '--stdout',
-                                       '-v', self.voice_name,
-                                       text], stdout=f) == 0)
-        return result
-
-##############################################################################
-# Worker thread run function
-def voice_worker(queue_tasks, queue_results, engine, tmpdir):
+def voice_worker(task_queue, result_queue, engine, tmpdir):
+    """Worker thread to generate WAV files in `task_queue`."""
     while True:
-        cmd = queue_tasks.get()
-        if cmd is None:
-            break
-        fname = tempfile.mktemp(suffix=".wav", dir = tmpdir)
-        if not engine.make_wav( cmd, fname ):
-            fname = None
-        queue_results.put( (cmd, fname) )
-        queue_tasks.task_done()
+        text = task_queue.get()
+        if text is None: break
+        handle, fname = tempfile.mkstemp(suffix=".wav", dir=tmpdir)
+        success = engine.make_wav(text, fname)
+        if not success: fname = None
+        result_queue.put((text, fname))
+        task_queue.task_done()
 
-##############################################################################
-# Interface to available voice engines
-class VoiceDirection:
 
-    """Voice direction generator"""
+class VoiceGenerator:
+
+    """Threaded generator for voice directions."""
+
+    # TTS engines in order of preference.
+    engines = [
+        VoiceEngineMimic,
+        VoiceEngineFlite,
+        VoiceEnginePicoTTS,
+        VoiceEngineEspeak,
+    ]
 
     def __init__(self):
-        """Initialize a :class:`VoiceDirection` instance."""
-        self.tmpdir = None
-        # fill engines in the order of preference
-        self.engines = [ VoiceEngineMimic(), VoiceEngineMimicEnUsPirate(),
-                         VoiceEngineFlite(), VoiceEngineFliteEnUsPirate(),
-                         VoiceEnginePicoTTS(), VoiceEngineEspeak() ]
-        self.engine = None
-        self.tmpdir = tempfile.mkdtemp(prefix="poor-maps-")
-        self.worker_thread = None
-        self.queue_tasks = None
-        self.queue_results = None
-        self.cache = {}
-        self.last_cache_check_time = 0
+        """Initialize a :class:`VoiceGenerator` instance."""
+        self._cache = {}
+        self._engine = None
+        self._result_queue = None
+        self._task_queue = None
+        self._tmpdir = tempfile.mkdtemp(prefix="poor-maps-")
+        self._worker_thread = None
+        # Normally quit is called from Application,
+        # but e.g. when running unit tests we need atexit.
+        atexit.register(self.quit)
 
-    def __del__(self):
-        self._clean_worker()
-
-        if self.tmpdir:
-            shutil.rmtree(self.tmpdir)
-            self.tmpdir = None
-            self.previous_command = None
-
-    def _clean_worker(self):
-        if self.worker_thread is not None:
-            self.queue_tasks.put(None)
-            self.worker_thread.join()
-            self.worker_thread = None
-            self._update_cache() # to ensure that we have all items
-
-    def _clean_cache(self):
-        for cmd, voice in self.cache.items():
-            if voice.filename is not None:
-                os.remove(voice.filename)
-        self.cache = {}
+    @property
+    def active(self):
+        """Return ``True`` when a TTS engine is selected."""
+        return self._engine is not None
 
     def clean(self):
-        """Stop the worker and clean the cache"""
+        """Terminate the worker thread and purge generated files."""
         self._clean_worker()
-        self._clean_cache()
-        self.last_cache_check_time = 0
-        #print("Voice engine cleaned")
+        for text in list(self._cache):
+            self._purge(text)
 
-    def active(self):
-        """True when TTS engine is selected"""
-        return self.engine is not None
+    def _clean_outdated_cache(self):
+        """Remove oldest generated WAV files from cache."""
+        # Minimizes RAM use on Sailfish OS where /tmp is in RAM.
+        items = list(self._cache.items())
+        items = [x for x in items if x[1] is not None]
+        items.sort(key=lambda x: os.path.getmtime(x[1]))
+        for text, fname in items[:-100]:
+            self._purge(text)
 
-    def set_voice(self, language, sex = "male"):
-        """Find the engine that matches requested language and, if that engine
-        supports, prefer the requested sex"""
-        #print("Voice requested:", language, sex)
-        self.clean()
-        if language is None:
-            self.engine = None
-        else:
-            for e in self.engines:
-                if e.supports(language):
-                    self.engine = e
-                    self.engine.set_voice(language, sex)
-                    return
-        self.engine = None
-
-    def make(self, cmd, time):
-        """Request to generate voice for cmd, expected at given time from destination"""
-        if self.engine is None:
-            return
+    def _clean_worker(self):
+        """Terminate the worker thread."""
+        if self._worker_thread is None: return
+        self._task_queue.put(None)
+        self._worker_thread.join()
+        self._worker_thread = None
+        # Ensure that we have all items.
         self._update_cache()
-        if cmd in self.cache:
-            if self.cache[cmd].time > time:
-                self.cache[cmd].time = time
-            return
 
-        if self.worker_thread is None:
-            self.queue_tasks = queue.Queue()
-            self.queue_results = queue.Queue()
-            self.worker_thread = threading.Thread( target = voice_worker,
-                                                   kwargs = {'queue_tasks': self.queue_tasks,
-                                                             'queue_results': self.queue_results,
-                                                             'engine': self.engine,
-                                                             'tmpdir': self.tmpdir } )
-            self.worker_thread.start()
-
-        # add an empty element into cache to ensure that we don't
-        # run the same voice direction twice through the engine
-        self.cache[cmd] = Voice(time=time)
-        self.queue_tasks.put(cmd)
-        #print("Request", cmd, time)
-
-    def get(self, cmd):
-        """Get the voice for the direction"""
-        self._update_cache()
-        voice = self.cache.get(cmd, None)
-        #print("Wanted:", cmd, vars(voice))
-        if voice is not None:
-            return voice.filename
+    def _find_engine(self, language, gender="male"):
+        """Return TTS engine instance for `language` and `gender`."""
+        for engine in self.engines:
+            if engine.supports(language):
+                return engine(language, gender)
         return None
 
-    def _update_cache(self):
-        """Update the cache"""
-        if self.queue_results is None:
-            return
-        while not self.queue_results.empty():
-            cmd, fname = self.queue_results.get_nowait()
-            self.queue_results.task_done()
-            self.cache[cmd].filename = fname # time is already set
-            #print("Got", cmd)
+    def get(self, text):
+        """Return the WAV filename for `text`."""
+        self._update_cache()
+        return self._cache.get(text, None)
 
-    def set_time(self, time):
-        """Checks the cache for expiry. Note that the time is relative to destination"""
-        if abs(time - self.last_cache_check_time) < 600:
+    def make(self, text):
+        """Queue `text` for WAV file generation."""
+        if self._engine is None: return
+        self._update_cache()
+        if text in self._cache:
+            # WAV file already generated, just update
+            # file modification time to prevent removal.
+            if self._cache[text] is not None:
+                os.utime(self._cache[text])
             return
-        self.last_cache_check_time = time
-        keys = [k for k, v in self.cache.items() if v.time - time > 600]
-        for k in keys:
-            voice = self.cache[k]
-            if voice.filename is not None:
-                os.remove(voice.filename)
-            #print("Delete", k)
-            del self.cache[k]
+        if self._worker_thread is None:
+            self._result_queue = queue.Queue()
+            self._task_queue = queue.Queue()
+            self._worker_thread = threading.Thread(
+                target=voice_worker,
+                kwargs=dict(task_queue=self._task_queue,
+                            result_queue=self._result_queue,
+                            engine=self._engine,
+                            tmpdir=self._tmpdir),
+
+                daemon=True)
+            self._worker_thread.start()
+        # Add an empty element into cache to ensure that we don't
+        # run the same voice direction twice through the engine.
+        self._cache[text] = None
+        self._task_queue.put(text)
+        self._clean_outdated_cache()
+
+    def _purge(self, text):
+        """Remove generated WAV file from cache."""
+        with poor.util.silent(Exception, tb=True):
+            if self._cache[text] is not None:
+                os.remove(self._cache[text])
+        with poor.util.silent(Exception, tb=True):
+            del self._cache[text]
+
+    def quit(self):
+        """Terminate the worker thread and purge generated files."""
+        self._clean_worker()
+        with poor.util.silent(Exception):
+            shutil.rmtree(self._tmpdir)
+
+    def set_voice(self, language, gender="male"):
+        """Set TTS engine and voice to use."""
+        self.clean()
+        self._engine = self._find_engine(language, gender)
+
+    def _update_cache(self):
+        """Update the WAV file cache."""
+        if self._result_queue is None: return
+        while not self._result_queue.empty():
+            text, fname = self._result_queue.get_nowait()
+            self._result_queue.task_done()
+            self._cache[text] = fname
