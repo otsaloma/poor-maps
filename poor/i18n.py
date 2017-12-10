@@ -35,17 +35,16 @@ def _(message):
 
 def __(message, language):
     """Return the translation of `message` to `language`."""
-    # Convert from provider API languages to our translations.
-    # https://www.transifex.com/otsaloma/poor-maps/languages/
-    language = {
-        "de": "de_DE",
-        "es": "es_ES",
-    }.get(language, language)
+    # Try to account for differences between provider API languages
+    # and our translations, allowing some amount of fuzziness, e.g.
+    # for German try "de" and "de_DE" in addition to the requested.
+    plain = language.split("_")[0]
+    origin = "{}_{}".format(plain, plain.upper())
     if not language in _foreign_translations:
         _foreign_translations[language] = gettext.translation(
             "poor-maps",
             localedir=poor.LOCALE_DIR,
-            languages=[language],
+            languages=[language, plain, origin],
             fallback=True)
 
     translation = _foreign_translations[language]

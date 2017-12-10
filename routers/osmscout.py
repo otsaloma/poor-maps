@@ -28,8 +28,8 @@ import poor
 import urllib.parse
 
 CONF_DEFAULTS = {
+    "language": poor.util.get_default_language("en"),
     "type": "auto",
-    "language": poor.util.get_default_language()
 }
 
 ICONS = {
@@ -107,13 +107,11 @@ def route(fm, to, heading, params):
     fm, to = map(prepare_endpoint, (fm, to))
     if heading is not None:
         fm["heading"] = heading
-    if poor.conf.units == "american": units = "miles"
-    elif poor.conf.units == "british": units = "miles"
-    else: units = "kilometers"
+    language = poor.conf.routers.osmscout.language
+    units = "kilometers" if poor.conf.units == "metric" else "miles"
     input = dict(locations=[fm, to],
                  costing=poor.conf.routers.osmscout.type,
-                 directions_options=dict(language=poor.conf.routers.osmscout.language,
-                                         units=units))
+                 directions_options=dict(language=language, units=units))
 
     input = urllib.parse.quote(json.dumps(input))
     url = URL.format(**locals())

@@ -27,8 +27,8 @@ import urllib.parse
 
 CONF_DEFAULTS = {
     "avoids": [],
+    "language": poor.util.get_default_language("en_US"),
     "type": "fastest",
-    "language": poor.util.get_default_language()
 }
 
 ICONS = {
@@ -63,17 +63,6 @@ SUPPORTED_LOCALES = [
     "es_MX",
     "ru_RU",
 ]
-
-LOCALE2LANG = {
-    "en_US": "en-US",
-    "en_GB": "en-GB",
-    "fr_CA": "fr-CA",
-    "fr_FR": "fr",
-    "de_DE": "de",
-    "es_ES": "es",
-    "es_MX": "es-MX",
-    "ru_RU": "ru",
-}
 
 URL = ("http://open.mapquestapi.com/directions/v2/route"
        "?key=Fmjtd|luur2quy2h,bn=o5-9aasg4"
@@ -129,7 +118,7 @@ def route(fm, to, heading, params):
         maneuvers[-1]["icon"] = "arrive"
     route = dict(x=x, y=y, maneuvers=maneuvers, mode="car")
     route["attribution"] = poor.util.get_routing_attribution("MapQuest")
-    route["language"] = LOCALE2LANG.get(locale, "en-US")
+    route["language"] = locale
     if route and route["x"]:
         cache[url] = copy.deepcopy(route)
     return route
