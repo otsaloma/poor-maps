@@ -345,6 +345,10 @@ class Narrative:
             y=maneuver.y,
         ) for maneuver in maneuvers]
 
+    def get_message_voice_uri(self, message):
+        """Return WAV file URI for `message` or ``None``."""
+        return self.voice_generator.get(__(message, self.language))
+
     def _get_next_maneuver(self, maneuver):
         """Return the maneuver after `maneuver` or ``None``."""
         for i in range(maneuver.node + 1, len(self.maneuver)):
@@ -374,6 +378,10 @@ class Narrative:
             self.voice_generator.make(prompt.text)
             ngenerated += 1
             if ngenerated > 2: break
+        # Generate and keep available standard messages.
+        self.voice_generator.make(__("Rerouting", self.language))
+        self.voice_generator.make(__("Rerouting failed", self.language))
+        self.voice_generator.make(__("New route found", self.language))
         for i, prompt in reversed(enumerate(self.verbals)):
             if prompt.passed: continue
             # Avoid being consistently late playing voice directions

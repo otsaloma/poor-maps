@@ -128,10 +128,20 @@ ApplicationWindow {
         root.visible = true;
     }
 
+    function playMaybe(message) {
+        // Play message via TTS engine if applicable.
+        if (!app.conf.get("voice_navigation")) return;
+        var fun = "poor.app.narrative.get_message_voice_uri";
+        py.call(fun, [message], function(uri) {
+            if (uri) sound.source = uri;
+        });
+    }
+
     function reroute() {
         // Find a new route from the current position to the existing destination.
         if (app.rerouting) return;
         app.notification.hold(app.tr("Rerouting"));
+        app.playMaybe("Rerouting");
         app.rerouting = true;
         // Note that rerouting does not allow us to relay params to the router,
         // i.e. ones saved only temporarily as page.params in RoutePage.qml.
@@ -143,14 +153,17 @@ ApplicationWindow {
                 route = route[0];
             if (route && route.error && route.message) {
                 app.notification.flash(app.tr("Rerouting failed: %1").arg(route.message));
+                app.playMaybe("Rerouting failed");
                 app.rerouteConsecutiveErrors++;
             } else if (route && route.x && route.x.length > 0) {
                 app.notification.flash(app.tr("New route found"));
+                app.playMaybe("New route found");
                 map.addRoute(route, true);
                 map.addManeuvers(route.maneuvers);
                 app.rerouteConsecutiveErrors = 0;
             } else {
                 app.notification.flash(app.tr("Rerouting failed"));
+                app.playMaybe("Rerouting failed");
                 app.rerouteConsecutiveErrors++;
             }
             app.reroutePreviousTime = Date.now();
