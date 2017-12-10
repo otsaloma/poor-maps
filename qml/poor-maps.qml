@@ -71,9 +71,9 @@ ApplicationWindow {
 
     Audio {
         id: sound
-        loops: 1
         autoLoad: true
         autoPlay: true
+        loops: 1
     }
 
     Component.onCompleted: {
@@ -237,10 +237,9 @@ ApplicationWindow {
         if (app.showNarrative === null)
             app.showNarrative = app.conf.get("show_narrative");
         app.navigationStatus.update(status);
+        if (app.navigationStatus.voiceUri)
+            sound.source = app.navigationStatus.voiceUri;
         app.navigationStatus.reroute && app.rerouteMaybe();
-        // voice is used only here by setting corresponding sound source
-        if (status && status.voice_uri)
-            sound.source = status.voice_uri;
     }
 
 }

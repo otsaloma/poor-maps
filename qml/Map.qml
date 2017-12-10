@@ -251,8 +251,8 @@ Map {
         map.clearRoute();
         map.route.setPath(route.x, route.y);
         map.route.attribution = route.attribution || "";
+        map.route.language = route.language || "en";
         map.route.mode = route.mode || "car";
-        map.route.language = route.language;
         map.route.redraw();
         py.call_sync("poor.app.narrative.set_mode", [route.mode || "car"]);
         py.call("poor.app.narrative.set_route", [route.x, route.y], function() {
@@ -274,11 +274,11 @@ Map {
             map.autoRotate = true;
         });
         if (app.conf.get("voice_navigation")) {
-            py.call_sync("poor.app.narrative.set_voice", [route.language, app.conf.get("voice_gender")], null);
+            var args = [route.language, app.conf.get("voice_gender")];
+            py.call_sync("poor.app.narrative.set_voice", args);
         } else {
-            py.call_sync("poor.app.narrative.set_voice", [null])
+            py.call_sync("poor.app.narrative.set_voice", [null, null]);
         }
-        py.call("poor.app.narrative.begin", null, null);
         app.navigationActive = true;
         app.navigationPageSeen = true;
         app.navigationStarted = true;
@@ -368,7 +368,6 @@ Map {
         map.autoCenter = false;
         map.autoRotate = false;
         map.zoomLevel > 15 && map.setZoomLevel(15);
-        py.call("poor.app.narrative.end", null, null);
         app.navigationActive = false;
     }
 
@@ -583,8 +582,8 @@ Map {
             data.x = map.route.path.x;
             data.y = map.route.path.y;
             data.attribution = map.route.attribution;
+            data.language = map.route.language;
             data.mode = map.route.mode;
-            data.language = map.route.language
         } else {
             var data = {};
         }
