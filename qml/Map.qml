@@ -273,7 +273,7 @@ Map {
             map.autoCenter = true;
             map.autoRotate = true;
         });
-        if (app.conf.get("voice_directions")) {
+        if (app.conf.get("voice_navigation")) {
             py.call_sync("poor.app.narrative.set_voice", [route.language, app.conf.get("voice_gender")], null);
         } else {
             py.call_sync("poor.app.narrative.set_voice", [null])

@@ -18,23 +18,13 @@
 """Narration of routing maneuvers."""
 
 import bisect
-import copy
 import poor
 import statistics
 
-from poor.i18n import _
 from poor.i18n import __
 
 __all__ = ("Narrative",)
 
-
-class VerbalPrompt:
-
-    """Verbal prompt before a routing maneuver"""
-
-    def __init__(self, distance, prompt):
-        self.distance = distance
-        self.prompt = prompt
 
 class Maneuver:
 
@@ -46,58 +36,52 @@ class Maneuver:
         self.icon = "flag"
         self.length = 0
         self.narrative = ""
-        self.verbal_alert = None
-        self.verbal_pre = None
-        self.verbal_post = None
-        self.verbal_prompts_before = [] # verbal alerts and _pre
-                                        # prompt arranged into a
-                                        # list. The prompts are sorted
-                                        # by the distance from the
-                                        # maneuver
         self.node = None
         self.x = None
         self.y = None
         for name in set(kwargs) & set(dir(self)):
             setattr(self, name, kwargs[name])
-        if self.verbal_alert is None: self.verbal_alert = self.narrative
-        if self.verbal_pre is None: self.verbal_pre = self.narrative
-        # voice directions: alert and pre parameters
-        self.voice_pre_distance = 50
-        self.voice_pre_time = 5
 
-    def is_same(self, maneuver):
-        """Check if the maneuver matches self"""
-        return ( maneuver.node == self.node )
+    @property
+    def speed(self):
+        """Return speed of the leg following maneuver in m/s."""
+        return self.length / max(1, self.duration)
 
-    def fill_verbal_prompts(self, length, duration, language):
-        """Fill voice prompts taking into account length, duration of the leg before
-        the maneuver and the used units"""
-        speed = length / max(1, duration) # m/s
-        self.verbal_prompts_before = []
-        distance_pre = max( self.voice_pre_distance, self.voice_pre_time*speed )
-        if self.verbal_pre is not None:
-            self.verbal_prompts_before.append( VerbalPrompt(distance = distance_pre,
-                                                            prompt = self.verbal_pre) )
-        if self.verbal_alert is not None:
-            times = []
-            if duration > 1800:
-                times = [ 30, 90 ]
-            elif duration > 600:
-                times = [ 35 ]
-            elif duration > 60:
-                times = [ 20 ]
-            else:
-                # ignore alert, there is too short distance
-                dist = []
 
-            for t in times:
-                distance_alert = poor.util.round_distance(t * speed, n=1)
-                prompt = __("In {distance}, {direction}", language).format(
-                    distance = poor.util.format_distance(distance_alert, n=1, short=False),
-                    direction = self.verbal_alert)
+class Verbal:
 
-                self.verbal_prompts_before.append( VerbalPrompt(distance = distance_alert,
-                                                                prompt = prompt) )
+    """A verbal routing instruction."""
+
+    def __init__(self, **kwargs):
+        """Initialize a :class:`Verbal` instance."""
+        self.dist = 0
+        self.generated = False
+        self.importance = 0
+        self.passed = False
+        self.speed = 1
+        self.text = 0
+        self.time = 0
+        for name in set(kwargs) & set(dir(self)):
+            setattr(self, name, kwargs[name])
+
+    def __repr__(self):
+        return ("{}(dist={:.0f}, time={:.0f}, text={})"
+                .format(self.__class__.__name__,
+                        self.dist,
+                        self.time,
+                        repr(self.text)))
+
+    @property
+    def duration(self):
+        """Return duration in seconds of spoken text."""
+        # Actual TTS speeds are maybe about 12-16 characters per second.
+        # Use a slightly underestimated speed here to avoid overlaps.
+        return len(self.text) / 10
+
+    @property
+    def length(self):
+        """Return length in meters driven during text spoken."""
+        return self.speed * self.duration
 
 
 class Narrative:
@@ -108,18 +92,14 @@ class Narrative:
         """Initialize a :class:`Narrative` instance."""
         self.dist = []
         self._last_node = 0
+        self.language = "en"
         self.maneuver = []
         self.mode = "car"
         self.time = []
+        self.verbals = []
+        self.voice_generator = poor.VoiceGenerator()
         self.x = []
         self.y = []
-        self.current_maneuver = None
-        self.distance_route_too_far = 200.0 # [meter] used to check whether route is too far to display instructions
-        self.distance_route_too_far_for_direction = 50.0 # [meter] don't auto-rotate when exceeding this distance
-        self.distance_route_init_reroute = 100.0 # [meter] when distance from route is exceeded, triggers rerouting calculations
-        self.voice_engine = poor.VoiceGenerator()
-        self.navigation_active = False # True while navigating
-        self.language = "en" # language used for routing instructions
 
     def _calculate_direction_ahead(self, node):
         """Return direction of the segment from `node` ahead."""
@@ -130,6 +110,13 @@ class Narrative:
         """Return length of the segment from `node` ahead."""
         return poor.util.calculate_distance(
             self.x[node], self.y[node], self.x[node+1], self.y[node+1])
+
+    def _format_verbal_alert(self, text, advance, speed):
+        """Return `text` formatted as a verbal alert."""
+        distance = poor.util.round_distance(advance * speed, n=1)
+        distance = poor.util.format_distance(distance, short=False)
+        return (__("In {distance}, {direction}", self.language)
+                .format(distance=distance, direction=text))
 
     def _get_closest_maneuver_node(self, x, y, node):
         """Return index of the maneuver node closest to coordinates."""
@@ -197,28 +184,6 @@ class Narrative:
             r += 1
         return statistics.median(directions)
 
-    def _get_distance_from_route(self, x, y, node):
-        """Return distance in meters from the route polyline."""
-        return min(self._get_distances_from_route(x, y, node))
-
-    def _get_distances_from_route(self, x, y, node):
-        """Return distances in meters from route segments."""
-        if len(self.x) == 1:
-            return poor.util.calculate_distance(
-                x, y, self.x[node], self.y[node])
-        dist = []
-        if node > 0:
-            x1, x2 = self.x[node-1:node+1]
-            y1, y2 = self.y[node-1:node+1]
-            dist.append(poor.util.calculate_segment_distance(
-                x, y, x1, y1, x2, y2))
-        if node < len(self.x) - 1:
-            x1, x2 = self.x[node:node+2]
-            y1, y2 = self.y[node:node+2]
-            dist.append(poor.util.calculate_segment_distance(
-                x, y, x1, y1, x2, y2))
-        return dist
-
     def get_display(self, x, y, accuracy=None):
         """Return a dictionary of status details to display."""
         if not self.ready: return None
@@ -233,59 +198,18 @@ class Narrative:
         dest_dist = poor.util.format_distance(dest_dist)
         dest_time = poor.util.format_time(dest_time)
         man = self._get_display_maneuver(x, y, node, seg_dists)
-        man_node, man_dist, man_time, icon, narrative, maneuver = man
-        man_dist_value, man_time_value = man_dist, man_time
+        man_node, man_dist, man_time, icon, narrative = man
+        voice_uri = self._get_voice_uri(man_node, man_dist, man_time)
         man_dist = poor.util.format_distance(man_dist)
         man_time = poor.util.format_time(man_time)
-        if seg_dist > self.distance_route_too_far:
+        if seg_dist > 200:
             # Don't show the narrative or details calculated
             # from nodes along the route if far off route.
-            dest_time = man_time = icon = narrative = None
-
+            dest_time = man_time = icon = narrative = voice_uri = None
         # Don't provide route direction to auto-rotate by if off route.
-        direction = self._get_direction(x, y, node) if seg_dist < self.distance_route_too_far_for_direction else None
-        # Trigger rerouting if far off route.
-        reroute = seg_dist > self.distance_route_init_reroute + (accuracy or 40000000)
-
-        # voice directions support
-        voice_to_play = None
-        if ( self.navigation_active and
-             self.voice_engine.active and
-             seg_dist < self.distance_route_too_far_for_direction ):
-            # no voice directions when too far from the route
-
-            if self.current_maneuver is None:
-                # just starting, not much to do this time
-                self._set_current_maneuver(maneuver)
-
-            elif self.current_maneuver.is_same(maneuver):
-
-                for i in range(len(self.current_maneuver.verbal_prompts_before)):
-                    p = self.current_maneuver.verbal_prompts_before[i]
-                    if man_dist_value < p.distance + 10: # use 10 meters as a tolerance
-                        voice_to_play = self.voice_engine.get(p.prompt)
-                        if voice_to_play is not None:
-                            # drop the played prompt and all that were
-                            # supposed to be played before
-                            self.current_maneuver.verbal_prompts_before = self.current_maneuver.verbal_prompts_before[:i]
-                        break
-
-                else: # not much to do, use for maintenance
-                    pass
-
-            else: # maneuver changed
-
-                # post voice should be played only if we are moving
-                # along the road. in this case, new maneuver should be
-                # the next one for the current_maneuver.
-                if ( self.current_maneuver.verbal_post is not None and
-                     self.current_maneuver.node + 1 < len(self.maneuver) and
-                     self.maneuver[self.current_maneuver.node+1].is_same(maneuver) ):
-                    voice_to_play = self.voice_engine.get(self.current_maneuver.verbal_post)
-                    if voice_to_play is not None:
-                        self.current_maneuver.verbal_post = None
-                self._set_current_maneuver(maneuver)
-
+        direction = self._get_direction(x, y, node) if seg_dist < 50 else None
+        # Trigger rerouting if off route (usually after missed a turn).
+        reroute = seg_dist > 100 + (accuracy or 40000000)
         return dict(total_dist=poor.util.format_distance(max(self.dist)),
                     total_time=poor.util.format_time(max(self.time)),
                     dest_dist=dest_dist,
@@ -296,8 +220,8 @@ class Narrative:
                     icon=icon,
                     narrative=narrative,
                     direction=direction,
-                    reroute=reroute,
-                    voice_to_play=voice_to_play)
+                    voice_uri=voice_uri,
+                    reroute=reroute)
 
     def _get_display_destination(self, x, y, node, seg_dist):
         """Return destination details to display."""
@@ -329,7 +253,7 @@ class Narrative:
             # Use exact straight-line value at the very end.
             man_dist = poor.util.calculate_distance(
                 x, y, maneuver.x, maneuver.y)
-        return man_node, man_dist, man_time, maneuver.icon, maneuver.narrative, maneuver
+        return man_node, man_dist, man_time, maneuver.icon, maneuver.narrative
 
     def _get_display_transit(self, x, y):
         """Return a dictionary of status details to display."""
@@ -381,33 +305,30 @@ class Narrative:
                     icon=icon,
                     narrative=narrative,
                     direction=direction,
-                    reroute=False,
-                    voice_to_play=None)
+                    voice_uri=None,
+                    reroute=False)
 
-    def _set_current_maneuver(self, maneuver):
-        """Set the current maneuver and request the corresponding voice directions"""
-        # set current maneuver
-        self.current_maneuver = copy.deepcopy(maneuver)
+    def _get_distance_from_route(self, x, y, node):
+        """Return distance in meters from the route polyline."""
+        return min(self._get_distances_from_route(x, y, node))
 
-        if not self.voice_engine.active:
-            return
-
-        # request to make voice directions for current and
-        # few future maneuvers
-        node = maneuver.node
-        for i in range(3):
-            time = self.time[node]
-            man = self.maneuver[node]
-            for p in man.verbal_prompts_before:
-                self.voice_engine.make(p.prompt)
-
-            if man.verbal_post:
-                self.voice_engine.make(man.verbal_post)
-
-            if len(self.maneuver) > node+1:
-                node = self.maneuver[node+1].node
-            else:
-                break
+    def _get_distances_from_route(self, x, y, node):
+        """Return distances in meters from route segments."""
+        if len(self.x) == 1:
+            return poor.util.calculate_distance(
+                x, y, self.x[node], self.y[node])
+        dist = []
+        if node > 0:
+            x1, x2 = self.x[node-1:node+1]
+            y1, y2 = self.y[node-1:node+1]
+            dist.append(poor.util.calculate_segment_distance(
+                x, y, x1, y1, x2, y2))
+        if node < len(self.x) - 1:
+            x1, x2 = self.x[node:node+2]
+            y1, y2 = self.y[node:node+2]
+            dist.append(poor.util.calculate_segment_distance(
+                x, y, x1, y1, x2, y2))
+        return dist
 
     def get_maneuvers(self, x, y):
         """Return a list of dictionaries of maneuver details."""
@@ -424,6 +345,53 @@ class Narrative:
             y=maneuver.y,
         ) for maneuver in maneuvers]
 
+    def _get_next_maneuver(self, maneuver):
+        """Return the maneuver after `maneuver` or ``None``."""
+        for i in range(maneuver.node + 1, len(self.maneuver)):
+            if self.maneuver[i].node > maneuver.node:
+                return self.maneuver[i]
+        return None
+
+    def _get_previous_maneuver(self, maneuver):
+        """Return the maneuver before `maneuver` or ``None``."""
+        for i in range(maneuver.node - 1, -1, -1):
+            if self.maneuver[i].node < maneuver.node:
+                return self.maneuver[i]
+        return None
+
+    def _get_voice_uri(self, man_node, man_dist, man_time):
+        """Return WAV file URI of verbal prompt or ``None``."""
+        if not poor.conf.voice_navigation: return None
+        if not self.voice_generator.active: return None
+        dist = man_dist + self.dist[man_node]
+        time = man_time + self.time[man_node]
+        ngenerated = 0
+        for prompt in self.verbals:
+            # Generate a couple new WAV files ahead,
+            # since some TTS engines can be slow.
+            if prompt.passed: continue
+            if prompt.generated: continue
+            self.voice_generator.make(prompt.text)
+            ngenerated += 1
+            if ngenerated > 2: break
+        for i, prompt in reversed(enumerate(self.verbals)):
+            if prompt.passed: continue
+            # Avoid being consistently late playing voice directions
+            # by accounting for the polling frequency and any delays
+            # between the below code and actual playback start.
+            if (dist < prompt.dist + 20 or
+                time < prompt.time - 2):
+                for j in range(i, -1, -1):
+                    self.verbals[j].passed = True
+                text = self.verbals[i].text
+                return self.voice_generator.get(text)
+        # No voice to play at the current location.
+        return None
+
+    def quit(self):
+        """Clean up before quitting application."""
+        self.voice_generator.quit()
+
     @property
     def ready(self):
         """Return ``True`` if narrative is in steady state and ready for use."""
@@ -434,6 +402,24 @@ class Narrative:
                 len(self.time) ==
                 len(self.maneuver))
 
+    def _remove_overlapping_verbals(self):
+        """Remove the least important of overlapping verbal prompts."""
+        i = 0
+        while i < len(self.verbals) - 1:
+            i1_dist = self.verbals[i].dist
+            i1_time = self.verbals[i].time
+            i2_dist = i1_dist - self.verbals[i].length
+            i2_time = i1_time - self.verbals[i].duration
+            j1_dist = self.verbals[i+1].dist
+            j1_time = self.verbals[i+1].time
+            if i2_dist < j1_dist or i2_time < j1_time:
+                iw = self.verbals[i].importance
+                jw = self.verbals[i+1].importance
+                remove = i if iw < jw else i + 1
+                del self.verbals[remove]
+            else:
+                i += 1
+
     def set_maneuvers(self, maneuvers):
         """
         Set maneuver points and corresponding narrative.
@@ -443,9 +429,9 @@ class Narrative:
         (seconds) and length (meters) refers to the leg following the maneuver,
         other data is associated with the maneuver point itself.
         """
-        self.current_maneuver = None
-        self.voice_engine.clean()
-        prev_maneuver = None
+        self.voice_generator.clean()
+        next_maneuver = None
+        verbals = []
         for i in reversed(range(len(maneuvers))):
             if maneuvers[i].get("passive", False): continue
             maneuver = Maneuver(**maneuvers[i])
@@ -456,38 +442,16 @@ class Narrative:
                 self.maneuver[j] = maneuver
             # Calculate time remaining to destination for each node
             # based on durations of individual legs following given maneuvers.
-            if prev_maneuver is not None:
-                prev_dist = self.dist[prev_maneuver.node]
-                maneuver.length = self.dist[maneuver.node] - prev_dist
-                speed = maneuver.length / max(1, maneuver.duration) # m/s
-                for j in reversed(range(maneuver.node, prev_maneuver.node)):
+            if next_maneuver is not None:
+                next_dist = self.dist[next_maneuver.node]
+                maneuver.length = self.dist[maneuver.node] - next_dist
+                for j in reversed(range(maneuver.node, next_maneuver.node)):
                     dist = self.dist[j] - self.dist[j+1]
-                    self.time[j] = self.time[j+1] + dist/speed
-            prev_maneuver = maneuver
-
-        # walk through all maneuvers and fill the voice
-        # instructions. Here, the length of the leg before maneuver is
-        # required.
-        node = 0
-        prev_node = 0
-        while True:
-            maneuver = self.maneuver[node]
-            if node > 1:
-                length = self.dist[prev_node] - self.dist[node]
-                duration = self.time[prev_node] - self.time[node]
-                maneuver.fill_verbal_prompts(length = length,
-                                             duration = duration,
-                                             language = self.language )
-            else:
-                # the first node
-                maneuver.fill_verbal_prompts(length=0, duration=0, language=self.language)
-
-            if node + 1 < len(self.maneuver):
-                prev_node = node
-                node = self.maneuver[node+1].node
-            else:
-                break
-
+                    self.time[j] = self.time[j+1] + dist/maneuver.speed
+            next_maneuver = maneuver
+            maneuvers[i]["maneuver"] = maneuver
+            verbals.insert(0, maneuvers[i])
+        self._set_verbals(verbals)
 
     def set_mode(self, mode):
         """
@@ -499,11 +463,6 @@ class Narrative:
         can all be marked as "car".
         """
         self.mode = mode
-
-    def set_voice(self, language, gender = "male"):
-        """Set voice directions mode"""
-        self.language = language
-        self.voice_engine.set_voice(language, gender)
 
     def set_route(self, x, y):
         """Set route from coordinates."""
@@ -532,6 +491,83 @@ class Narrative:
             # that should in most cases overwrite these.
             self.time[i] = self.time[i+1] + (dist/1000/120) * 3600
 
+    def _set_verbals(self, prompts):
+        """Set verbal prompts for maneuver points."""
+        self.verbals = []
+        prompts = list(map(poor.AttrDict, prompts))
+        for prompt in sorted(prompts, key=lambda x: x.maneuver.node):
+            prompt.setdefault("verbal_pre", prompt.narrative)
+            prompt.setdefault("verbal_alert", prompt.narrative)
+            prev_man = self._get_previous_maneuver(prompt.maneuver)
+            if prev_man is None: continue
+            # Attributes of pre- and post-maneuver legs.
+            # Units are meters, seconds and meters/second.
+            pre_length = prev_man.length
+            pre_duration = prev_man.duration
+            pre_speed = max(1, prev_man.speed)
+            post_length = prompt.maneuver.length
+            post_duration = prompt.maneuver.duration
+            post_speed = max(1, prompt.maneuver.speed)
+            # For each prompt, assing both a distance (m) and a time (s) offset
+            # before or after the associated maneuver that the prompt should be
+            # played. This is to account for the speed not actually being
+            # constant over the whole leg, for possible rounding issues with
+            # short legs and for the practical maneuver need often being when
+            # grouping lanes separate instead of the intersection center.
+            if prompt.get("verbal_alert", "") and pre_duration > 1800:
+                # Add advance alert, e.g. "In 1 km, turn right onto Broadway."
+                dist_offset = min(1000, pre_length - 30)
+                time_offset = min(90, pre_duration - 3)
+                item = Verbal()
+                item.dist = self.dist[prompt.maneuver.node] + dist_offset
+                item.time = self.time[prompt.maneuver.node] + time_offset
+                item.text = self._format_verbal_alert(
+                    prompt.verbal_pre, time_offset, pre_speed)
+                item.speed = pre_speed
+                item.importance = 1
+                self.verbals.append(item)
+            if prompt.get("verbal_alert", "") and pre_duration > 20:
+                # Add advance alert, e.g. "In 100 m, turn right onto Broadway."
+                dist_offset = min(100, pre_length - 30)
+                time_offset = min(30, pre_duration - 3)
+                item = Verbal()
+                item.dist = self.dist[prompt.maneuver.node] + dist_offset
+                item.time = self.time[prompt.maneuver.node] + time_offset
+                item.text = self._format_verbal_alert(
+                    prompt.verbal_pre, time_offset, pre_speed)
+                item.speed = pre_speed
+                item.importance = 3
+                self.verbals.append(item)
+            if prompt.get("verbal_pre", ""):
+                # Add pre-maneuver prompt, e.g. "Turn right onto Broadway."
+                dist_offset = min(50, pre_length - 10)
+                time_offset = min(5, pre_duration - 1)
+                item = Verbal()
+                item.dist = self.dist[prompt.maneuver.node] + dist_offset
+                item.time = self.time[prompt.maneuver.node] + time_offset
+                item.text = prompt.verbal_pre
+                item.speed = pre_speed
+                item.importance = 4
+                self.verbals.append(item)
+            if prompt.get("verbal_post", "") and post_duration > 20:
+                # Add post-maneuver prompt, e.g. "Continue for 100 m."
+                dist_offset = min(50, post_length - 30)
+                time_offset = min(5, post_duration - 3)
+                item = Verbal()
+                item.dist = self.dist[prompt.maneuver.node] - dist_offset
+                item.time = self.time[prompt.maneuver.node] - time_offset
+                item.text = prompt.verbal_post
+                item.speed = post_speed
+                item.importance = 2
+                self.verbals.append(item)
+        # Remove the least important of overlapping prompts.
+        self._remove_overlapping_verbals()
+
+    def set_voice(self, language, gender="male"):
+        """Set TTS engine and voice to use for directions."""
+        self.language = language
+        self.voice_generator.set_voice(language, gender)
+
     def unset(self):
         """Unset route and maneuvers."""
         self.dist = []
@@ -541,22 +577,3 @@ class Narrative:
         self.time = []
         self.x = []
         self.y = []
-        self.current_maneuver = None
-
-    def begin(self):
-        """Begin navigation"""
-        self.current_maneuver = None
-        self.navigation_active = True
-        self. _set_current_maneuver(self.maneuver[0])
-        #print("Navigation started")
-
-    def end(self):
-        """End navigation"""
-        self.current_maneuver = None
-        self.navigation_active = False
-        #print("Navigation stopped")
-
-    def quit(self):
-        """Cleanup before quiting application"""
-        self.voice_engine.quit()
-        self.voice_engine = None

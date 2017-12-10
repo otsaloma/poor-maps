@@ -239,9 +239,8 @@ ApplicationWindow {
         app.navigationStatus.update(status);
         app.navigationStatus.reroute && app.rerouteMaybe();
         // voice is used only here by setting corresponding sound source
-        if (status && status.voice_to_play) {
-            sound.source = "file://" + status.voice_to_play
-        }        
+        if (status && status.voice_uri)
+            sound.source = status.voice_uri;
     }
 
 }
