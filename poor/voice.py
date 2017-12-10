@@ -226,6 +226,12 @@ class VoiceGenerator:
         self._update_cache()
         return self._cache.get(text, None)
 
+    def get_uri(self, text):
+        """Return the WAV URI for `text`."""
+        fname = self.get(text)
+        if fname is None: return None
+        return poor.util.path2uri(fname)
+
     def make(self, text):
         """Queue `text` for WAV file generation."""
         if self._engine is None: return

@@ -384,7 +384,7 @@ class Narrative:
                 for j in range(i, -1, -1):
                     self.verbals[j].passed = True
                 text = self.verbals[i].text
-                return self.voice_generator.get(text)
+                return self.voice_generator.get_uri(text)
         # No voice to play at the current location.
         return None
 
