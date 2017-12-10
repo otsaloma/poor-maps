@@ -56,8 +56,9 @@ class VoiceEngine:
     @property
     def voice_name(self):
         """Return name of the voice to use."""
+        voices = self.voices[self.language]
         other = "female" if self.gender == "male" else "male"
-        return self.voices[self.language].get(self.gender, other)
+        return voices.get(self.gender, voices.get(other, None))
 
 
 class VoiceEngineEspeak(VoiceEngine):
