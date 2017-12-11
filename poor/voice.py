@@ -219,6 +219,10 @@ class VoiceGenerator:
         for engine in self.engines:
             if engine.supports(language):
                 return engine(language, gender)
+        if "_" in language:
+            # Drop country and try plain language.
+            language = language.split("_")[0]
+            return self._find_engine(language, gender)
         return None
 
     def get(self, text):
