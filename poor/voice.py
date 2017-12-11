@@ -43,6 +43,16 @@ class VoiceEngine:
         self.gender = gender
         self.language = language
 
+    def call(self, args, **kwargs):
+        """Run command `args` and return process return value."""
+        message = " ".join(args)
+        message = message.encode("ascii", errors="replace")
+        message = message.decode("ascii")
+        print(message, end=" ")
+        rvalue = subprocess.call(args, **kwargs)
+        print(str(rvalue))
+        return rvalue
+
     def make_wav(self, text, fname):
         """Generate voice output to WAV file `fname`."""
         raise NotImplementedError
@@ -84,10 +94,10 @@ class VoiceEngineEspeak(VoiceEngine):
     def make_wav(self, text, fname):
         """Generate voice output to WAV file `fname`."""
         with open(fname, "w") as f:
-            return subprocess.call([self.command,
-                                    "--stdout",
-                                    "-v", self.voice_name,
-                                    text], stdout=f) == 0
+            return self.call([self.command,
+                              "--stdout",
+                              "-v", self.voice_name,
+                              text], stdout=f) == 0
 
 
 class VoiceEngineFlite(VoiceEngine):
@@ -102,10 +112,10 @@ class VoiceEngineFlite(VoiceEngine):
 
     def make_wav(self, text, fname):
         """Generate voice output to WAV file `fname`."""
-        return subprocess.call([self.command,
-                                "-t", text,
-                                "-o", fname,
-                                "-voice", self.voice_name]) == 0
+        return self.call([self.command,
+                          "-t", text,
+                          "-o", fname,
+                          "-voice", self.voice_name]) == 0
 
 
 class VoiceEngineMimic(VoiceEngine):
@@ -120,10 +130,10 @@ class VoiceEngineMimic(VoiceEngine):
 
     def make_wav(self, text, fname):
         """Generate voice output to WAV file `fname`."""
-        return subprocess.call([self.command,
-                                "-t", text,
-                                "-o", fname,
-                                "-voice", self.voice_name]) == 0
+        return self.call([self.command,
+                          "-t", text,
+                          "-o", fname,
+                          "-voice", self.voice_name]) == 0
 
 
 class VoiceEnginePicoTTS(VoiceEngine):
@@ -143,10 +153,10 @@ class VoiceEnginePicoTTS(VoiceEngine):
 
     def make_wav(self, text, fname):
         """Generate voice output to WAV file `fname`."""
-        return subprocess.call([self.command,
-                                "-w", fname,
-                                "-l", self.voice_name,
-                                text]) == 0
+        return self.call([self.command,
+                          "-w", fname,
+                          "-l", self.voice_name,
+                          text]) == 0
 
 
 def voice_worker(task_queue, result_queue, engine, tmpdir):
