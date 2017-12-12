@@ -341,6 +341,9 @@ class Narrative:
             icon=maneuver.icon,
             length=poor.util.format_distance(maneuver.length),
             narrative=maneuver.narrative,
+            verbal_alert=maneuver.verbal_alert,
+            verbal_post=maneuver.post,
+            verbal_pre=maneuver.verbal_pre,
             x=maneuver.x,
             y=maneuver.y,
         ) for maneuver in maneuvers]

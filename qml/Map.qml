@@ -198,10 +198,13 @@ Map {
             component = Qt.createComponent("ManeuverMarker.qml");
             maneuver = component.createObject(map);
             maneuver.coordinate = QtPositioning.coordinate(maneuvers[i].y, maneuvers[i].x);
+            maneuver.duration = maneuvers[i].duration || 0;
             maneuver.icon = maneuvers[i].icon || "flag";
             maneuver.narrative = maneuvers[i].narrative || "";
             maneuver.passive = maneuvers[i].passive || false;
-            maneuver.duration = maneuvers[i].duration || 0;
+            maneuver.verbalAlert = maneuvers[i].verbal_alert || "";
+            maneuver.verbalPost = maneuvers[i].verbal_post || "";
+            maneuver.verbalPre = maneuvers[i].verbal_pre || "";
             map.maneuvers.push(maneuver);
             map.addMapItem(maneuver);
         }
@@ -276,6 +279,7 @@ Map {
         if (app.conf.get("voice_navigation")) {
             var args = [route.language, app.conf.get("voice_gender")];
             py.call_sync("poor.app.narrative.set_voice", args);
+            app.notification.flash(app.tr("Voice navigation on"));
         } else {
             py.call_sync("poor.app.narrative.set_voice", [null, null]);
         }
@@ -545,13 +549,13 @@ Map {
             var maneuver = {};
             maneuver.x = map.maneuvers[i].coordinate.longitude;
             maneuver.y = map.maneuvers[i].coordinate.latitude;
+            maneuver.duration = map.maneuvers[i].duration;
             maneuver.icon = map.maneuvers[i].icon;
             maneuver.narrative = map.maneuvers[i].narrative;
-            maneuver.duration = map.maneuvers[i].duration;
             maneuver.passive = map.maneuvers[i].passive;
-            maneuver.verbal_alert = map.maneuvers[i].verbal_alert;
-            maneuver.verbal_pre = map.maneuvers[i].verbal_pre;
-            maneuver.verbal_post = map.maneuvers[i].verbal_post;
+            maneuver.verbal_alert = map.maneuvers[i].verbalAlert;
+            maneuver.verbal_post = map.maneuvers[i].verbalPost;
+            maneuver.verbal_pre = map.maneuvers[i].verbalPre;
             data.push(maneuver);
         }
         py.call_sync("poor.storage.write_maneuvers", [data]);
