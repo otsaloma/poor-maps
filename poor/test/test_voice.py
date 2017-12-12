@@ -66,3 +66,5 @@ class TestVoiceGenerator(poor.test.TestCase):
         self.generator.set_voice("en")
         self.generator.set_voice("en", "male")
         self.generator.set_voice("en", "female")
+        self.generator.set_voice("en_US")
+        self.generator.set_voice("en_XX")

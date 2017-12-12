@@ -37,6 +37,9 @@ class Maneuver:
         self.length = 0
         self.narrative = ""
         self.node = None
+        self.verbal_alert = ""
+        self.verbal_post = ""
+        self.verbal_pre = ""
         self.x = None
         self.y = None
         for name in set(kwargs) & set(dir(self)):
@@ -65,10 +68,12 @@ class Verbal:
             setattr(self, name, kwargs[name])
 
     def __repr__(self):
-        return ("{}(dist={:.0f}, time={:.0f}, text={})"
+        return ("{}(dist={:.0f}-{:.0f}, time={:.0f}-{:.0f}, text={})"
                 .format(self.__class__.__name__,
                         self.dist,
+                        self.dist - self.length,
                         self.time,
+                        self.time - self.duration,
                         repr(self.text)))
 
     @property
@@ -113,6 +118,8 @@ class Narrative:
 
     def _format_verbal_alert(self, text, advance, speed):
         """Return `text` formatted as a verbal alert."""
+        # Account for some latency before the prompt is actually played.
+        advance = max(0, advance - 3)
         distance = poor.util.round_distance(advance * speed, n=1)
         distance = poor.util.format_distance(distance, short=False)
         return (__("In {distance}, {direction}", self.language)
@@ -184,7 +191,7 @@ class Narrative:
             r += 1
         return statistics.median(directions)
 
-    def get_display(self, x, y, accuracy=None):
+    def get_display(self, x, y, accuracy=None, navigating=False):
         """Return a dictionary of status details to display."""
         if not self.ready: return None
         if self.mode == "transit":
@@ -199,13 +206,15 @@ class Narrative:
         dest_time = poor.util.format_time(dest_time)
         man = self._get_display_maneuver(x, y, node, seg_dists)
         man_node, man_dist, man_time, icon, narrative = man
-        voice_uri = self._get_voice_uri(man_node, man_dist, man_time)
+        voice_uri = (
+            self._get_voice_uri(man_node, man_dist, man_time)
+            if seg_dist < 200 and navigating else None)
         man_dist = poor.util.format_distance(man_dist)
         man_time = poor.util.format_time(man_time)
         if seg_dist > 200:
             # Don't show the narrative or details calculated
             # from nodes along the route if far off route.
-            dest_time = man_time = icon = narrative = voice_uri = None
+            dest_time = man_time = icon = narrative = None
         # Don't provide route direction to auto-rotate by if off route.
         direction = self._get_direction(x, y, node) if seg_dist < 50 else None
         # Trigger rerouting if off route (usually after missed a turn).
@@ -342,7 +351,7 @@ class Narrative:
             length=poor.util.format_distance(maneuver.length),
             narrative=maneuver.narrative,
             verbal_alert=maneuver.verbal_alert,
-            verbal_post=maneuver.post,
+            verbal_post=maneuver.verbal_post,
             verbal_pre=maneuver.verbal_pre,
             x=maneuver.x,
             y=maneuver.y,
@@ -372,20 +381,18 @@ class Narrative:
         if not self.voice_generator.active: return None
         dist = man_dist + self.dist[man_node]
         time = man_time + self.time[man_node]
-        ngenerated = 0
         for prompt in self.verbals:
             # Generate a couple new WAV files ahead,
             # since some TTS engines can be slow.
             if prompt.passed: continue
             if prompt.generated: continue
+            if prompt.time < time - 300: break
             self.voice_generator.make(prompt.text)
-            ngenerated += 1
-            if ngenerated > 2: break
         # Generate and keep available standard messages.
         self.voice_generator.make(__("Rerouting", self.language))
         self.voice_generator.make(__("Rerouting failed", self.language))
         self.voice_generator.make(__("New route found", self.language))
-        for i, prompt in reversed(enumerate(self.verbals)):
+        for i, prompt in reversed(list(enumerate(self.verbals))):
             if prompt.passed: continue
             # Avoid being consistently late playing voice directions
             # by accounting for the polling frequency and any delays
@@ -395,6 +402,9 @@ class Narrative:
                 for j in range(i, -1, -1):
                     self.verbals[j].passed = True
                 text = self.verbals[i].text
+                message = text.encode("ascii", errors="replace")
+                message = message.decode("ascii")
+                print("About to play: {}".format(message))
                 return self.voice_generator.get_uri(text)
         # No voice to play at the current location.
         return None
@@ -415,21 +425,16 @@ class Narrative:
 
     def _remove_overlapping_verbals(self):
         """Remove the least important of overlapping verbal prompts."""
-        i = 0
-        while i < len(self.verbals) - 1:
-            i1_dist = self.verbals[i].dist
-            i1_time = self.verbals[i].time
-            i2_dist = i1_dist - self.verbals[i].length
-            i2_time = i1_time - self.verbals[i].duration
-            j1_dist = self.verbals[i+1].dist
-            j1_time = self.verbals[i+1].time
-            if i2_dist < j1_dist or i2_time < j1_time:
+        for i in list(range(len(self.verbals))):
+            if i >= len(self.verbals) - 1: break
+            end = self.verbals[i].time - self.verbals[i].duration
+            next_start = self.verbals[i+1].time
+            while end < next_start:
                 iw = self.verbals[i].importance
                 jw = self.verbals[i+1].importance
                 remove = i if iw < jw else i + 1
                 del self.verbals[remove]
-            else:
-                i += 1
+                next_start = self.verbals[i+1].time
 
     def set_maneuvers(self, maneuvers):
         """
@@ -440,7 +445,6 @@ class Narrative:
         (seconds) and length (meters) refers to the leg following the maneuver,
         other data is associated with the maneuver point itself.
         """
-        self.voice_generator.clean()
         next_maneuver = None
         verbals = []
         for i in reversed(range(len(maneuvers))):
@@ -527,7 +531,7 @@ class Narrative:
             # grouping lanes separate instead of the intersection center.
             if prompt.get("verbal_alert", "") and pre_duration > 1800:
                 # Add advance alert, e.g. "In 1 km, turn right onto Broadway."
-                dist_offset = min(1000, pre_length - 30)
+                dist_offset = min(500, pre_length - 30)
                 time_offset = min(90, pre_duration - 3)
                 item = Verbal()
                 item.dist = self.dist[prompt.maneuver.node] + dist_offset
@@ -547,7 +551,7 @@ class Narrative:
                 item.text = self._format_verbal_alert(
                     prompt.verbal_pre, time_offset, pre_speed)
                 item.speed = pre_speed
-                item.importance = 3
+                item.importance = 4
                 self.verbals.append(item)
             if prompt.get("verbal_pre", ""):
                 # Add pre-maneuver prompt, e.g. "Turn right onto Broadway."
@@ -558,7 +562,7 @@ class Narrative:
                 item.time = self.time[prompt.maneuver.node] + time_offset
                 item.text = prompt.verbal_pre
                 item.speed = pre_speed
-                item.importance = 4
+                item.importance = 3
                 self.verbals.append(item)
             if prompt.get("verbal_post", "") and post_duration > 20:
                 # Add post-maneuver prompt, e.g. "Continue for 100 m."
@@ -586,5 +590,6 @@ class Narrative:
         self.maneuver = []
         self.mode = "car"
         self.time = []
+        self.verbals = []
         self.x = []
         self.y = []

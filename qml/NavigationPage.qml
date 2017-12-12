@@ -210,7 +210,7 @@ Page {
 
             ComboBox {
                 id: voiceGenderComboBox
-                description: app.tr("Preferred gender for voice directions.")
+                description: app.tr("Preferred gender for voice navigation.")
                 enabled: voiceNavigationSwitch.checked && !app.navigationActive
                 label: app.tr("Voice gender")
                 menu: ContextMenu {

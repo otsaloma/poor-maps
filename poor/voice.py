@@ -45,13 +45,17 @@ class VoiceEngine:
 
     def call(self, args, **kwargs):
         """Run command `args` and return process return value."""
-        message = " ".join(args)
-        message = message.encode("ascii", errors="replace")
-        message = message.decode("ascii")
-        print(message, end=" ")
-        rvalue = subprocess.call(args, **kwargs)
-        print(str(rvalue))
-        return rvalue
+        try:
+            message = " ".join(args)
+            message = message.encode("ascii", errors="replace")
+            message = message.decode("ascii")
+            print(message, end=" ")
+            rvalue = subprocess.call(args, **kwargs)
+            print(str(rvalue))
+            return rvalue
+        except Exception as error:
+            print("1:\n{}".format(str(error)))
+            return 1
 
     def make_wav(self, text, fname):
         """Generate voice output to WAV file `fname`."""
@@ -241,7 +245,7 @@ class VoiceGenerator:
         return self._cache.get(text, None)
 
     def get_uri(self, text):
-        """Return the WAV URI for `text`."""
+        """Return the WAV file URI for `text`."""
         fname = self.get(text)
         if fname is None: return None
         return poor.util.path2uri(fname)
@@ -290,8 +294,14 @@ class VoiceGenerator:
 
     def set_voice(self, language, gender="male"):
         """Set TTS engine and voice to use."""
-        self.clean()
-        self._engine = self._find_engine(language, gender)
+        new = self._find_engine(language, gender)
+        if self._engine is None and new is None: return
+        if (self._engine is None or
+            new is None or
+            new.__class__ is not self._engine.__class__ or
+            new.voice_name != self._engine.voice_name):
+            self._engine = new
+            self.clean()
 
     def _update_cache(self):
         """Update the WAV file cache."""
