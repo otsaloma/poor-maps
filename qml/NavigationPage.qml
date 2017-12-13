@@ -202,30 +202,10 @@ Page {
 
             TextSwitch {
                 id: voiceNavigationSwitch
-                checked: enabled && app.conf.get("voice_navigation")
+                checked: app.conf.get("voice_navigation")
                 enabled: !app.navigationActive
                 text: app.tr("Voice navigation")
                 onCheckedChanged: enabled && app.conf.set("voice_navigation", voiceNavigationSwitch.checked);
-            }
-
-            ComboBox {
-                id: voiceGenderComboBox
-                description: app.tr("Preferred gender for voice navigation.")
-                enabled: voiceNavigationSwitch.checked && !app.navigationActive
-                label: app.tr("Voice gender")
-                menu: ContextMenu {
-                    MenuItem { text: app.tr("Male") }
-                    MenuItem { text: app.tr("Female") }
-                }
-                property var values: ["male", "female"]
-                Component.onCompleted: {
-                    var value = app.conf.get("voice_gender");
-                    voiceGenderComboBox.currentIndex = voiceGenderComboBox.values.indexOf(value);
-                }
-                onCurrentIndexChanged: {
-                    var index = voiceGenderComboBox.currentIndex;
-                    app.conf.set("voice_gender", voiceGenderComboBox.values[index]);
-                }
             }
 
             TextSwitch {
