@@ -116,11 +116,10 @@ class Narrative:
         return poor.util.calculate_distance(
             self.x[node], self.y[node], self.x[node+1], self.y[node+1])
 
-    def _format_verbal_alert(self, text, advance, speed):
+    def _format_verbal_alert(self, text, dist_offset, time_offset, speed):
         """Return `text` formatted as a verbal alert."""
-        # Account for some latency before the prompt is actually played.
-        advance = max(0, advance - 3)
-        distance = poor.util.round_distance(advance * speed, n=1)
+        dist_offset = max(dist_offset, time_offset * speed)
+        distance = poor.util.round_distance(dist_offset, n=1)
         distance = poor.util.format_distance(distance, short=False)
         return (__("In {distance}, {direction}", self.language)
                 .format(distance=distance, direction=text))
@@ -398,7 +397,7 @@ class Narrative:
             # by accounting for the polling frequency and any delays
             # between the below code and actual playback start.
             if (dist < prompt.dist + 20 or
-                time < prompt.time - 2):
+                time < prompt.time + 2):
                 for j in range(i, -1, -1):
                     self.verbals[j].passed = True
                 text = self.verbals[i].text
@@ -434,7 +433,9 @@ class Narrative:
                 jw = self.verbals[i+1].importance
                 remove = i if iw < jw else i + 1
                 del self.verbals[remove]
-                next_start = self.verbals[i+1].time
+                next_start = (self.verbals[i+1].time
+                              if remove == i + 1 and i + 1 < len(self.verbals)
+                              else -1)
 
     def set_maneuvers(self, maneuvers):
         """
@@ -537,7 +538,7 @@ class Narrative:
                 item.dist = self.dist[prompt.maneuver.node] + dist_offset
                 item.time = self.time[prompt.maneuver.node] + time_offset
                 item.text = self._format_verbal_alert(
-                    prompt.verbal_pre, time_offset, pre_speed)
+                    prompt.verbal_pre, dist_offset, time_offset, pre_speed)
                 item.speed = pre_speed
                 item.importance = 1
                 self.verbals.append(item)
@@ -549,7 +550,7 @@ class Narrative:
                 item.dist = self.dist[prompt.maneuver.node] + dist_offset
                 item.time = self.time[prompt.maneuver.node] + time_offset
                 item.text = self._format_verbal_alert(
-                    prompt.verbal_pre, time_offset, pre_speed)
+                    prompt.verbal_pre, dist_offset, time_offset, pre_speed)
                 item.speed = pre_speed
                 item.importance = 4
                 self.verbals.append(item)

@@ -73,7 +73,7 @@ Page {
 
             ComboBox {
                 id: voiceGenderComboBox
-                description: app.tr("Preferred gender for voice navigation. Note that gender selection is not supported by all engines and languages.")
+                description: app.tr("Preferred gender for voice navigation. Only supported by some engines and languages.")
                 label: app.tr("Voice gender")
                 menu: ContextMenu {
                     MenuItem { text: app.tr("Male") }

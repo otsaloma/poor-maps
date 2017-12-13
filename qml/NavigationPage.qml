@@ -204,7 +204,7 @@ Page {
                 id: voiceNavigationSwitch
                 checked: app.conf.get("voice_navigation")
                 enabled: !app.navigationActive
-                text: app.tr("Voice navigation")
+                text: app.tr("Voice navigation instructions")
                 onCheckedChanged: enabled && app.conf.set("voice_navigation", voiceNavigationSwitch.checked);
             }
 
