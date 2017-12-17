@@ -207,10 +207,10 @@ class Narrative:
         man_node, man_dist, man_time, icon, narrative = man
         voice_uri = (
             self._get_voice_uri(man_node, man_dist, man_time)
-            if seg_dist < 200 and navigating else None)
+            if seg_dist < 100 and navigating else None)
         man_dist = poor.util.format_distance(man_dist)
         man_time = poor.util.format_time(man_time)
-        if seg_dist > 200:
+        if seg_dist > 100:
             # Don't show the narrative or details calculated
             # from nodes along the route if far off route.
             dest_time = man_time = icon = narrative = None
