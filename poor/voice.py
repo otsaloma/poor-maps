@@ -67,6 +67,20 @@ class VoiceEngine:
         commands = filter(poor.util.requirement_found, cls.commands)
         return any(commands) and language in cls.voices
 
+    def transform_text(self, text):
+        """Return `text` transformed for input to TTS engine."""
+        if self.language.startswith("en"):
+            # XXX: Work around English TTS engines having trouble with
+            # non-English characters. This is mostly relevant for languages
+            # for which we don't have TTS engines, leaving users with a mix
+            # of English narrative and non-English street names.
+            text = text.replace("ä", "ae")
+            text = text.replace("ö", "oe")
+            text = text.replace("å", "aa")
+            text = text.replace("æ", "ae")
+            text = text.replace("ø", "oe")
+        return text
+
     @property
     def voice_name(self):
         """Return name of the voice to use."""
@@ -97,6 +111,7 @@ class VoiceEngineEspeak(VoiceEngine):
 
     def make_wav(self, text, fname):
         """Generate voice output to WAV file `fname`."""
+        text = self.transform_text(text)
         with open(fname, "w") as f:
             return self.call([self.command,
                               "--stdout",
@@ -116,6 +131,7 @@ class VoiceEngineFlite(VoiceEngine):
 
     def make_wav(self, text, fname):
         """Generate voice output to WAV file `fname`."""
+        text = self.transform_text(text)
         return self.call([self.command,
                           "-t", text,
                           "-o", fname,
@@ -134,6 +150,7 @@ class VoiceEngineMimic(VoiceEngine):
 
     def make_wav(self, text, fname):
         """Generate voice output to WAV file `fname`."""
+        text = self.transform_text(text)
         return self.call([self.command,
                           "-t", text,
                           "-o", fname,
@@ -157,6 +174,7 @@ class VoiceEnginePicoTTS(VoiceEngine):
 
     def make_wav(self, text, fname):
         """Generate voice output to WAV file `fname`."""
+        text = self.transform_text(text)
         return self.call([self.command,
                           "-w", fname,
                           "-l", self.voice_name,
