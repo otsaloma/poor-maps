@@ -1,3 +1,9 @@
+2018-01-06: Poor Maps 0.34.1
+============================
+
+* Fix colors of black icons to match overlays
+* Update translations
+
 2017-12-24: Poor Maps 0.34
 ==========================
 
