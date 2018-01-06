@@ -42,7 +42,7 @@ msgstr "Posición actual"
 #: poor/narrative.py:124
 #, python-brace-format
 msgid "In {distance}, {direction}"
-msgstr ""
+msgstr "A {distance}, {direction}"
 
 #: poor/narrative.py:391 qml/poor-maps.qml:143
 msgid "Rerouting"
@@ -58,23 +58,23 @@ msgstr "Nueva ruta encontrada"
 
 #: poor/util.py:188 poor/util.py:207
 msgid "miles"
-msgstr ""
+msgstr "millas"
 
 #: poor/util.py:189
 msgid "feet"
-msgstr ""
+msgstr "pies"
 
 #: poor/util.py:208
 msgid "yards"
-msgstr ""
+msgstr "yardas"
 
 #: poor/util.py:226
 msgid "meters"
-msgstr ""
+msgstr "metros"
 
 #: poor/util.py:227
 msgid "kilometers"
-msgstr ""
+msgstr "kilómetros"
 
 #: poor/util.py:237 poor/util.py:245
 #, python-brace-format
@@ -255,7 +255,7 @@ msgstr ""
 
 #: qml/AboutPage.qml:74
 msgid "Donate via PayPal"
-msgstr ""
+msgstr "Donar vía PayPal"
 
 #: qml/AboutPage.qml:79
 msgid "Translated by"
@@ -390,7 +390,7 @@ msgstr "No hay resultados"
 
 #: qml/Map.qml:282
 msgid "Voice navigation on"
-msgstr ""
+msgstr "Navegación por voz activado"
 
 #: qml/MapMouseArea.qml:31 qml/MapMouseArea.qml:32
 msgid "Unnamed point"
@@ -426,11 +426,11 @@ msgstr "Mapas de referencia y capas"
 
 #: qml/MenuPage.qml:116
 msgid "Auto-center on position"
-msgstr "Centrado automático en la posición"
+msgstr "Auto-centrado en la posición"
 
 #: qml/MenuPage.qml:133
 msgid "Auto-rotate on direction"
-msgstr "Giro automático según la dirección"
+msgstr "Auto-giro según dirección"
 
 #: qml/MenuPage.qml:148
 msgid "About"
@@ -494,7 +494,7 @@ msgstr "Mostrar instrucciones de navegación"
 
 #: qml/NavigationPage.qml:207
 msgid "Voice navigation instructions"
-msgstr ""
+msgstr "Instrucciones de navegación por voz"
 
 #: qml/NavigationPage.qml:215
 msgid "Reroute automatically"
@@ -594,18 +594,20 @@ msgid ""
 "Preferred gender for voice navigation. Only supported by some engines and "
 "languages."
 msgstr ""
+"Género preferido en la navegación por voz. Sólo es compatible con algunos "
+"motores e idiomas."
 
 #: qml/PreferencesPage.qml:77
 msgid "Voice gender"
-msgstr ""
+msgstr "Género de la voz"
 
 #: qml/PreferencesPage.qml:79
 msgid "Male"
-msgstr ""
+msgstr "Masculino"
 
 #: qml/PreferencesPage.qml:80
 msgid "Female"
-msgstr ""
+msgstr "Femenino"
 
 #: qml/PreferencesPage.qml:95
 msgid ""
@@ -791,73 +793,73 @@ msgstr "Evitar peajes"
 #: routers/mapquest_open_settings.qml:57 routers/mapzen_settings.qml:45
 #: routers/osmscout_settings.qml:45
 msgid "Language"
-msgstr ""
+msgstr "Idioma"
 
 #: routers/mapquest_open_settings.qml:59
 msgid "English (UK)"
-msgstr ""
+msgstr "Inglés (RU)"
 
 #: routers/mapquest_open_settings.qml:60
 msgid "English (US)"
-msgstr ""
+msgstr "Inglés (EU)"
 
 #: routers/mapquest_open_settings.qml:61
 msgid "French (Canada)"
-msgstr ""
+msgstr "Francés (Canadá)"
 
 #: routers/mapquest_open_settings.qml:62
 msgid "French (France)"
-msgstr ""
+msgstr "Francés (Francia)"
 
 #: routers/mapquest_open_settings.qml:63 routers/mapzen_settings.qml:50
 #: routers/osmscout_settings.qml:50
 msgid "German"
-msgstr ""
+msgstr "Alemán"
 
 #: routers/mapquest_open_settings.qml:64 routers/mapzen_settings.qml:53
 #: routers/osmscout_settings.qml:53
 msgid "Russian"
-msgstr ""
+msgstr "Ruso"
 
 #: routers/mapquest_open_settings.qml:65
 msgid "Spanish (Mexico)"
-msgstr ""
+msgstr "Español (México)"
 
 #: routers/mapquest_open_settings.qml:66
 msgid "Spanish (Spain)"
-msgstr ""
+msgstr "Español (España)"
 
 #: routers/mapzen_settings.qml:47 routers/osmscout_settings.qml:47
 msgid "Catalan"
-msgstr ""
+msgstr "Catalán"
 
 #: routers/mapzen_settings.qml:48 routers/osmscout_settings.qml:48
 msgid "Czech"
-msgstr ""
+msgstr "Checo"
 
 #: routers/mapzen_settings.qml:49 routers/osmscout_settings.qml:49
 msgid "English"
-msgstr ""
+msgstr "Inglés"
 
 #: routers/mapzen_settings.qml:51 routers/osmscout_settings.qml:51
 msgid "Hindi"
-msgstr ""
+msgstr "Hindi"
 
 #: routers/mapzen_settings.qml:52 routers/osmscout_settings.qml:52
 msgid "Italian"
-msgstr ""
+msgstr "Italiano"
 
 #: routers/mapzen_settings.qml:54 routers/osmscout_settings.qml:54
 msgid "Slovenian"
-msgstr ""
+msgstr "Esloveno"
 
 #: routers/mapzen_settings.qml:55 routers/osmscout_settings.qml:55
 msgid "Spanish"
-msgstr ""
+msgstr "Español"
 
 #: routers/mapzen_settings.qml:56 routers/osmscout_settings.qml:56
 msgid "Swedish"
-msgstr ""
+msgstr "Sueco"
 
 #: qml/js/util.js:94
 msgid "%1 (default)"

@@ -42,7 +42,7 @@ msgstr "Aktuell position"
 #: poor/narrative.py:124
 #, python-brace-format
 msgid "In {distance}, {direction}"
-msgstr ""
+msgstr "{distance}, {direction}"
 
 #: poor/narrative.py:391 qml/poor-maps.qml:143
 msgid "Rerouting"
@@ -58,23 +58,23 @@ msgstr "Ny rutt hittad"
 
 #: poor/util.py:188 poor/util.py:207
 msgid "miles"
-msgstr ""
+msgstr "miles"
 
 #: poor/util.py:189
 msgid "feet"
-msgstr ""
+msgstr "feet"
 
 #: poor/util.py:208
 msgid "yards"
-msgstr ""
+msgstr "yards"
 
 #: poor/util.py:226
 msgid "meters"
-msgstr ""
+msgstr "meter"
 
 #: poor/util.py:227
 msgid "kilometers"
-msgstr ""
+msgstr "kilometer"
 
 #: poor/util.py:237 poor/util.py:245
 #, python-brace-format
@@ -255,7 +255,7 @@ msgstr ""
 
 #: qml/AboutPage.qml:74
 msgid "Donate via PayPal"
-msgstr ""
+msgstr "Donera via PayPal"
 
 #: qml/AboutPage.qml:79
 msgid "Translated by"
@@ -390,7 +390,7 @@ msgstr "Inga resultat"
 
 #: qml/Map.qml:282
 msgid "Voice navigation on"
-msgstr ""
+msgstr "Röstnavigering på"
 
 #: qml/MapMouseArea.qml:31 qml/MapMouseArea.qml:32
 msgid "Unnamed point"
@@ -494,7 +494,7 @@ msgstr "Visa navigeringsinstruktioner"
 
 #: qml/NavigationPage.qml:207
 msgid "Voice navigation instructions"
-msgstr ""
+msgstr "Röstnavigering"
 
 #: qml/NavigationPage.qml:215
 msgid "Reroute automatically"
@@ -594,18 +594,19 @@ msgid ""
 "Preferred gender for voice navigation. Only supported by some engines and "
 "languages."
 msgstr ""
+"Önskat kön för röstnavigering. Stöds endast av vissa motorer och språk."
 
 #: qml/PreferencesPage.qml:77
 msgid "Voice gender"
-msgstr ""
+msgstr "Röst"
 
 #: qml/PreferencesPage.qml:79
 msgid "Male"
-msgstr ""
+msgstr "Manlig"
 
 #: qml/PreferencesPage.qml:80
 msgid "Female"
-msgstr ""
+msgstr "Kvinnlig"
 
 #: qml/PreferencesPage.qml:95
 msgid ""
@@ -791,73 +792,73 @@ msgstr "Försök undvika vägtullar"
 #: routers/mapquest_open_settings.qml:57 routers/mapzen_settings.qml:45
 #: routers/osmscout_settings.qml:45
 msgid "Language"
-msgstr ""
+msgstr "Språk"
 
 #: routers/mapquest_open_settings.qml:59
 msgid "English (UK)"
-msgstr ""
+msgstr "Engelska (UK)"
 
 #: routers/mapquest_open_settings.qml:60
 msgid "English (US)"
-msgstr ""
+msgstr "Engelska (US)"
 
 #: routers/mapquest_open_settings.qml:61
 msgid "French (Canada)"
-msgstr ""
+msgstr "Franska (Kanada)"
 
 #: routers/mapquest_open_settings.qml:62
 msgid "French (France)"
-msgstr ""
+msgstr "Franska (Frankrike)"
 
 #: routers/mapquest_open_settings.qml:63 routers/mapzen_settings.qml:50
 #: routers/osmscout_settings.qml:50
 msgid "German"
-msgstr ""
+msgstr "Tyska"
 
 #: routers/mapquest_open_settings.qml:64 routers/mapzen_settings.qml:53
 #: routers/osmscout_settings.qml:53
 msgid "Russian"
-msgstr ""
+msgstr "Ryska"
 
 #: routers/mapquest_open_settings.qml:65
 msgid "Spanish (Mexico)"
-msgstr ""
+msgstr "Spanska (Mexiko)"
 
 #: routers/mapquest_open_settings.qml:66
 msgid "Spanish (Spain)"
-msgstr ""
+msgstr "Spanska (Spanien)"
 
 #: routers/mapzen_settings.qml:47 routers/osmscout_settings.qml:47
 msgid "Catalan"
-msgstr ""
+msgstr "Katalanska"
 
 #: routers/mapzen_settings.qml:48 routers/osmscout_settings.qml:48
 msgid "Czech"
-msgstr ""
+msgstr "Tjeckiska"
 
 #: routers/mapzen_settings.qml:49 routers/osmscout_settings.qml:49
 msgid "English"
-msgstr ""
+msgstr "Engelska"
 
 #: routers/mapzen_settings.qml:51 routers/osmscout_settings.qml:51
 msgid "Hindi"
-msgstr ""
+msgstr "Hindi"
 
 #: routers/mapzen_settings.qml:52 routers/osmscout_settings.qml:52
 msgid "Italian"
-msgstr ""
+msgstr "Italienska"
 
 #: routers/mapzen_settings.qml:54 routers/osmscout_settings.qml:54
 msgid "Slovenian"
-msgstr ""
+msgstr "Slovenska"
 
 #: routers/mapzen_settings.qml:55 routers/osmscout_settings.qml:55
 msgid "Spanish"
-msgstr ""
+msgstr "Spanska"
 
 #: routers/mapzen_settings.qml:56 routers/osmscout_settings.qml:56
 msgid "Swedish"
-msgstr ""
+msgstr "Svenska"
 
 #: qml/js/util.js:94
 msgid "%1 (default)"
