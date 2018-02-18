@@ -1,3 +1,9 @@
+2018-02-18: Poor Maps 0.34.2
+============================
+
+* Fix broken share position by SMS button
+* Update translations
+
 2018-01-06: Poor Maps 0.34.1
 ============================
 
