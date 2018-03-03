@@ -22,7 +22,7 @@ import QtPositioning 5.3
 MouseArea {
     anchors.fill: parent
     onClicked: map.hidePoiBubbles();
-    onDoubleClicked: map.centerOnPosition();
+    onDoubleClicked: app.conf.get("double_tap_center") && map.centerOnPosition();
     onPressAndHold: {
         var coord = map.toCoordinate(Qt.point(mouse.x, mouse.y));
         map.addPois([{
