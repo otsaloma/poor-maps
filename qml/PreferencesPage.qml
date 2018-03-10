@@ -50,6 +50,19 @@ Page {
                 }
             }
 
+
+            TextSwitch {
+                id: doubleTapItem
+                checked: app.conf.get("double_tap_center")
+                text: app.tr("Double tap to center on position")
+                onCheckedChanged: {
+                    var value = doubleTapItem.checked
+                    if (value === app.conf.get("double_tap_center")) return;
+                    app.conf.set("double_tap_center", value);
+                }
+            }
+
+
             ComboBox {
                 id: unitsComboBox
                 label: app.tr("Units")

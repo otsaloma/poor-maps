@@ -34,6 +34,7 @@ DEFAULTS = {
     "basemap_filter": "",
     "cache_max_age": 30, # days
     "center": [0.0, 0.0],
+    "double_tap_center": True,
     "geocoder": "mapzen",
     "guide": "foursquare",
     # "always", "navigating" or "never".
