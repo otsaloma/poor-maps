@@ -1,3 +1,10 @@
+2018-04-02: Poor Maps 0.34.3
+============================
+
+* Remove Mapzen providers due to shutdown of services (#67)
+* Revert back to an image canvas for the route polyline (#61)
+* Update translations
+
 2018-02-18: Poor Maps 0.34.2
 ============================
 
