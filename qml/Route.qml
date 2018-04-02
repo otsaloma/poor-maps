@@ -36,7 +36,7 @@ Canvas {
     contextType: "2d"
     height: parent.height
     renderStrategy: Canvas.Cooperative
-    renderTarget: Canvas.FramebufferObject
+    renderTarget: Canvas.Image
     width: parent.width
     x: parent.x
     y: parent.y
