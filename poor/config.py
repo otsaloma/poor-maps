@@ -34,13 +34,13 @@ DEFAULTS = {
     "basemap_filter": "",
     "cache_max_age": 30, # days
     "center": [0.0, 0.0],
-    "geocoder": "mapzen",
+    "geocoder": "opencage",
     "guide": "foursquare",
     # "always", "navigating" or "never".
     "keep_alive": "navigating",
     "overlays": [],
     "reroute": True,
-    "router": "mapzen",
+    "router": "mapquest_open",
     "show_narrative": True,
     # "metric", "american" or "british".
     "units": "metric",
