@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-12-24 03:15+0200\n"
+"POT-Creation-Date: 2018-02-18 19:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Nathan Follens <follens@dr.com>, 2017\n"
+"Last-Translator: Nathan Follens, 2017\n"
 "Language-Team: Dutch (https://www.transifex.com/otsaloma/teams/70314/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -42,7 +42,7 @@ msgstr "Huidige positie"
 #: poor/narrative.py:124
 #, python-brace-format
 msgid "In {distance}, {direction}"
-msgstr ""
+msgstr "Over {distance}, {direction}"
 
 #: poor/narrative.py:391 qml/poor-maps.qml:143
 msgid "Rerouting"
@@ -56,79 +56,79 @@ msgstr "Routeherberekening mislukt"
 msgid "New route found"
 msgstr "Nieuwe route gevonden"
 
-#: poor/util.py:188 poor/util.py:207
+#: poor/util.py:189 poor/util.py:208
 msgid "miles"
-msgstr ""
+msgstr "mijl"
 
-#: poor/util.py:189
+#: poor/util.py:190
 msgid "feet"
-msgstr ""
+msgstr "voet"
 
-#: poor/util.py:208
+#: poor/util.py:209
 msgid "yards"
-msgstr ""
-
-#: poor/util.py:226
-msgid "meters"
-msgstr ""
+msgstr "yard"
 
 #: poor/util.py:227
-msgid "kilometers"
-msgstr ""
+msgid "meters"
+msgstr "meter"
 
-#: poor/util.py:237 poor/util.py:245
+#: poor/util.py:228
+msgid "kilometers"
+msgstr "kilometer"
+
+#: poor/util.py:238 poor/util.py:246
 #, python-brace-format
 msgid "{distance} north"
 msgstr "{distance} noord"
 
-#: poor/util.py:238
+#: poor/util.py:239
 #, python-brace-format
 msgid "{distance} north-east"
 msgstr "{distance} noordoost"
 
-#: poor/util.py:239
+#: poor/util.py:240
 #, python-brace-format
 msgid "{distance} east"
 msgstr "{distance} oost"
 
-#: poor/util.py:240
+#: poor/util.py:241
 #, python-brace-format
 msgid "{distance} south-east"
 msgstr "{distance} zuidoost"
 
-#: poor/util.py:241
+#: poor/util.py:242
 #, python-brace-format
 msgid "{distance} south"
 msgstr "{distance} zuid"
 
-#: poor/util.py:242
+#: poor/util.py:243
 #, python-brace-format
 msgid "{distance} south-west"
 msgstr "{distance} zuidwest"
 
-#: poor/util.py:243
+#: poor/util.py:244
 #, python-brace-format
 msgid "{distance} west"
 msgstr "{distance} west"
 
-#: poor/util.py:244
+#: poor/util.py:245
 #, python-brace-format
 msgid "{distance} north-west"
 msgstr "{distance} noordwest"
 
-#: poor/util.py:282
+#: poor/util.py:283
 msgid "{:d} min"
 msgstr "{:d} min"
 
-#: poor/util.py:283
+#: poor/util.py:284
 msgid "{:d} h {:d} min"
 msgstr "{:d} u {:d} min"
 
-#: poor/util.py:350
+#: poor/util.py:351
 msgid "Routing courtesy of {}."
 msgstr "Routering dankzij {}."
 
-#: poor/util.py:351
+#: poor/util.py:352
 #, python-brace-format
 msgid "Routing by {engine}, courtesy of {service}."
 msgstr "Routering door {engine}, dankzij {service}."
@@ -257,7 +257,7 @@ msgstr ""
 
 #: qml/AboutPage.qml:74
 msgid "Donate via PayPal"
-msgstr ""
+msgstr "Doneren via PayPal"
 
 #: qml/AboutPage.qml:79
 msgid "Translated by"
@@ -392,7 +392,7 @@ msgstr "Geen resultaten"
 
 #: qml/Map.qml:282
 msgid "Voice navigation on"
-msgstr ""
+msgstr "Stemnavigatie aan"
 
 #: qml/MapMouseArea.qml:31 qml/MapMouseArea.qml:32
 msgid "Unnamed point"
@@ -496,7 +496,7 @@ msgstr "Navigatie-instructies weergeven"
 
 #: qml/NavigationPage.qml:207
 msgid "Voice navigation instructions"
-msgstr ""
+msgstr "Stemnavigatie-instructies"
 
 #: qml/NavigationPage.qml:215
 msgid "Reroute automatically"
@@ -596,18 +596,20 @@ msgid ""
 "Preferred gender for voice navigation. Only supported by some engines and "
 "languages."
 msgstr ""
+"Voorkeursgeslacht voor stemnavigatie. Wordt niet door alle machines en talen"
+" ondersteund."
 
 #: qml/PreferencesPage.qml:77
 msgid "Voice gender"
-msgstr ""
+msgstr "Geslacht van stem"
 
 #: qml/PreferencesPage.qml:79
 msgid "Male"
-msgstr ""
+msgstr "Man"
 
 #: qml/PreferencesPage.qml:80
 msgid "Female"
-msgstr ""
+msgstr "Vrouw"
 
 #: qml/PreferencesPage.qml:95
 msgid ""
@@ -684,7 +686,7 @@ msgstr "Modi: %1"
 
 #: qml/SharePage.qml:53
 msgid "SMS"
-msgstr "SMS"
+msgstr "Sms"
 
 #: qml/SharePage.qml:59 qml/SharePage.qml:91
 msgid "Message copied to the clipboard"
@@ -793,73 +795,73 @@ msgstr "Probeer tol te vermijden"
 #: routers/mapquest_open_settings.qml:57 routers/mapzen_settings.qml:45
 #: routers/osmscout_settings.qml:45
 msgid "Language"
-msgstr ""
+msgstr "Taal"
 
 #: routers/mapquest_open_settings.qml:59
 msgid "English (UK)"
-msgstr ""
+msgstr "Engels (VK)"
 
 #: routers/mapquest_open_settings.qml:60
 msgid "English (US)"
-msgstr ""
+msgstr "Engels (VS)"
 
 #: routers/mapquest_open_settings.qml:61
 msgid "French (Canada)"
-msgstr ""
+msgstr "Frans (Canada)"
 
 #: routers/mapquest_open_settings.qml:62
 msgid "French (France)"
-msgstr ""
+msgstr "Frans (Frankrijk)"
 
 #: routers/mapquest_open_settings.qml:63 routers/mapzen_settings.qml:50
 #: routers/osmscout_settings.qml:50
 msgid "German"
-msgstr ""
+msgstr "Duits"
 
 #: routers/mapquest_open_settings.qml:64 routers/mapzen_settings.qml:53
 #: routers/osmscout_settings.qml:53
 msgid "Russian"
-msgstr ""
+msgstr "Russisch"
 
 #: routers/mapquest_open_settings.qml:65
 msgid "Spanish (Mexico)"
-msgstr ""
+msgstr "Spaans (Mexico)"
 
 #: routers/mapquest_open_settings.qml:66
 msgid "Spanish (Spain)"
-msgstr ""
+msgstr "Spaans (Spanje)"
 
 #: routers/mapzen_settings.qml:47 routers/osmscout_settings.qml:47
 msgid "Catalan"
-msgstr ""
+msgstr "Catalaans"
 
 #: routers/mapzen_settings.qml:48 routers/osmscout_settings.qml:48
 msgid "Czech"
-msgstr ""
+msgstr "Tsjechisch"
 
 #: routers/mapzen_settings.qml:49 routers/osmscout_settings.qml:49
 msgid "English"
-msgstr ""
+msgstr "Engels"
 
 #: routers/mapzen_settings.qml:51 routers/osmscout_settings.qml:51
 msgid "Hindi"
-msgstr ""
+msgstr "Hindi"
 
 #: routers/mapzen_settings.qml:52 routers/osmscout_settings.qml:52
 msgid "Italian"
-msgstr ""
+msgstr "Italiaans"
 
 #: routers/mapzen_settings.qml:54 routers/osmscout_settings.qml:54
 msgid "Slovenian"
-msgstr ""
+msgstr "Sloveens"
 
 #: routers/mapzen_settings.qml:55 routers/osmscout_settings.qml:55
 msgid "Spanish"
-msgstr ""
+msgstr "Spaans"
 
 #: routers/mapzen_settings.qml:56 routers/osmscout_settings.qml:56
 msgid "Swedish"
-msgstr ""
+msgstr "Zweeds"
 
 #: qml/js/util.js:94
 msgid "%1 (default)"
